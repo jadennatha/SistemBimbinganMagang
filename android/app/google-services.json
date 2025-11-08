@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "206870869909",
+    "project_id": "e-magang-4187c",
+    "storage_bucket": "e-magang-4187c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:206870869909:android:a1c353d24fe70ca73da89c",
+        "android_client_info": {
+          "package_name": "com.example.sistem_bimbingan_magang"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAuYnFXvF7j9sd_4XlxTeYjUyVXJSJ09F8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
