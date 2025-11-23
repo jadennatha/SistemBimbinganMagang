@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Warna utama dari logo
-  static const Color navyDark = Color(0xFF0D1B2A);
-  static const Color navy = Color(0xFF1B263B);
-  static const Color blueBook = Color(0xFF608AC3);
-  static const Color greenArrow = Color(0xFF9CC351);
-  static const Color blueGrey = Color(0xFFBBD0CE);
-  static const Color white = Color(0xFFFFFFFF);
+  static const Color navyDark = Color(0xFF25316C);
+  static const Color navy = Color(0xFF3C76A6);
+  static const Color blueBook = Color(0xFF51B3D4);
+  static const Color greenArrow = Color(0xFF8EBA3F);
+  static const Color blueGrey = Color(0xFFBCD3D6);
+  static const Color white = Color(0xFFFDFEFD);
 
   // Permukaan kartu
   static const Color surfaceLight = Color(0xFFEFF4F7);

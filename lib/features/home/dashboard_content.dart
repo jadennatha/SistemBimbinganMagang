@@ -13,216 +13,458 @@ class DashboardContent extends StatelessWidget {
     return depan[0].toUpperCase() + depan.substring(1);
   }
 
+  String _sapaan() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Selamat pagi';
+    if (hour < 17) return 'Selamat siang';
+    return 'Selamat malam';
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    final nama = _namaDariEmail(user?.email);
-    final t = Theme.of(context).textTheme;
+    final namaLengkap =
+        (user?.displayName != null && user!.displayName!.isNotEmpty)
+        ? user.displayName!
+        : _namaDariEmail(user?.email);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final bool isWide = constraints.maxWidth >= 600;
+    final textTheme = Theme.of(context).textTheme;
 
-        Widget statArea;
-        if (isWide) {
-          statArea = Row(
-            children: const [
-              Expanded(
-                child: StatCard(
-                  title: 'Logbook minggu ini',
-                  value: '0',
-                  subtitle: 'Entri yang sudah dibuat',
-                  icon: Icons.edit_note,
-                ),
-              ),
-              SizedBox(width: 14),
-              Expanded(
-                child: StatCard(
-                  title: 'Status bimbingan',
-                  value: 'Belum ada',
-                  subtitle: 'Menunggu entri pertama',
-                  icon: Icons.verified_outlined,
-                ),
-              ),
-            ],
-          );
-        } else {
-          statArea = Column(
-            children: const [
-              StatCard(
-                title: 'Logbook minggu ini',
-                value: '0',
-                subtitle: 'Entri yang sudah dibuat',
-                icon: Icons.edit_note,
-              ),
-              SizedBox(height: 12),
-              StatCard(
-                title: 'Status bimbingan',
-                value: 'Belum ada',
-                subtitle: 'Menunggu entri pertama',
-                icon: Icons.verified_outlined,
-              ),
-            ],
-          );
-        }
-
-        return Column(
+    return SafeArea(
+      top: true,
+      bottom: false,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 32, 20, 32), // konten agak turun
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Dashboard',
-              style: t.titleLarge?.copyWith(
-                fontFamily: 'StackSansHeadline',
-                fontWeight: FontWeight.w700,
-                color: AppColors.navy,
-              ),
+            // Header sapaan
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _sapaan(),
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.blueGrey,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      namaLengkap,
+                      style: textTheme.headlineSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.circle,
+                          size: 8,
+                          color: AppColors.greenArrow,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Magang aktif',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: AppColors.greenArrow,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                _UserBubble(name: namaLengkap),
+              ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Halo, $nama',
-              style: t.headlineSmall?.copyWith(
-                fontFamily: 'StackSansHeadline',
-                fontWeight: FontWeight.w700,
-                color: AppColors.navy,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Ringkasan aktivitas magang Kamu.',
-              style: t.bodyMedium?.copyWith(
-                color: AppColors.navy.withOpacity(0.7),
-              ),
-            ),
-            const SizedBox(height: 20),
-            statArea,
+
+            const SizedBox(height: 28),
+
+            // Kartu progres
+            const _ProgressCard(),
+
             const SizedBox(height: 24),
-            SizedBox(
-              height: 52,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: arahkan ke halaman tambah logbook
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.blueBook,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
+
+            // CARD RINGKASAN (PUTIH)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 6),
                   ),
-                ),
-                icon: const Icon(Icons.add),
-                label: const Text('Catat logbook hari ini'),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Ringkasan minggu ini',
+                    style: textTheme.titleMedium?.copyWith(
+                      color: AppColors.navyDark,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const _SummaryRow(
+                    icon: Icons.edit_note,
+                    title: 'Logbook tersimpan',
+                    value: '3 entri',
+                  ),
+                  const SizedBox(height: 10),
+                  const _SummaryRow(
+                    icon: Icons.event_available,
+                    title: 'Pertemuan bimbingan',
+                    value: '1 jadwal',
+                  ),
+                  const SizedBox(height: 10),
+                  const _SummaryRow(
+                    icon: Icons.assignment_turned_in_outlined,
+                    title: 'Progress laporan',
+                    value: '40%',
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 46,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  // TODO: arahkan ke daftar logbook
-                },
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.navy,
-                  side: BorderSide(color: AppColors.navy.withOpacity(0.4)),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+
+            const SizedBox(height: 20),
+
+            // CARD AKTIVITAS TERBARU (PUTIH)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 6),
                   ),
-                ),
-                icon: const Icon(Icons.list_alt),
-                label: const Text('Lihat riwayat logbook'),
+                ],
               ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Angka di atas masih dummy. Nanti dihubungkan ke Firestore.',
-              style: t.bodySmall?.copyWith(
-                color: AppColors.navy.withOpacity(0.5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Aktivitas terbaru',
+                    style: textTheme.titleMedium?.copyWith(
+                      color: AppColors.navyDark,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const _ActivityItem(
+                    icon: Icons.note_alt_outlined,
+                    title: 'Logbook kemarin',
+                    subtitle: 'Kamu mengisi logbook pada hari sebelumnya.',
+                    timeLabel: 'Kemarin',
+                  ),
+                  const SizedBox(height: 12),
+                  const _ActivityItem(
+                    icon: Icons.forum_outlined,
+                    title: 'Catatan bimbingan',
+                    subtitle:
+                        'Dosen menambahkan catatan pada bimbingan terakhir.',
+                    timeLabel: '2 hari lalu',
+                  ),
+                  const SizedBox(height: 12),
+                  const _ActivityItem(
+                    icon: Icons.upload_file_outlined,
+                    title: 'Upload berkas',
+                    subtitle: 'Proposal magang tersimpan di sistem.',
+                    timeLabel: 'Minggu lalu',
+                  ),
+                ],
               ),
             ),
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 }
 
-class StatCard extends StatelessWidget {
-  const StatCard({
-    required this.title,
-    required this.value,
-    required this.subtitle,
-    required this.icon,
-    super.key,
-  });
+class _UserBubble extends StatelessWidget {
+  const _UserBubble({required this.name});
 
-  final String title;
-  final String value;
-  final String subtitle;
-  final IconData icon;
+  final String name;
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context).textTheme;
+    final String initial = name.isNotEmpty ? name[0].toUpperCase() : 'M';
+
+    return Container(
+      padding: const EdgeInsets.all(2),
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          colors: [AppColors.blueBook, AppColors.greenArrow],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: CircleAvatar(
+        radius: 18,
+        backgroundColor: AppColors.background,
+        child: Text(
+          initial,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProgressCard extends StatefulWidget {
+  const _ProgressCard();
+
+  @override
+  State<_ProgressCard> createState() => _ProgressCardState();
+}
+
+class _ProgressCardState extends State<_ProgressCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _pulse;
+
+  static const double _progressValue = 0.4;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+
+    _pulse = Tween<double>(
+      begin: 0.92,
+      end: 1.08,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95),
         borderRadius: BorderRadius.circular(20),
+        gradient: const LinearGradient(
+          colors: [AppColors.navyDark, AppColors.blueBook],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.30),
+            blurRadius: 18,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: AppColors.blueBook.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            alignment: Alignment.center,
-            child: Icon(icon, color: AppColors.blueBook, size: 24),
-          ),
-          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  title,
-                  style: t.labelMedium?.copyWith(
-                    color: AppColors.navy.withOpacity(0.7),
+                  'Progres magang',
+                  style: textTheme.labelLarge?.copyWith(
+                    color: AppColors.blueGrey,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
-                  value,
-                  style: t.titleLarge?.copyWith(
-                    fontFamily: 'StackSansHeadline',
+                  '40%',
+                  style: textTheme.headlineSmall?.copyWith(
+                    color: Colors.white,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.navy,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: _progressValue),
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, _) {
+                      return LinearProgressIndicator(
+                        value: value,
+                        minHeight: 6,
+                        color: AppColors.greenArrow,
+                        backgroundColor: Colors.white.withOpacity(0.25),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 6),
                 Text(
-                  subtitle,
-                  style: t.bodySmall?.copyWith(
-                    color: AppColors.navy.withOpacity(0.6),
+                  'Lengkapi logbook dan laporan kamu secara bertahap.',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: Colors.white.withOpacity(0.9),
                   ),
                 ),
               ],
             ),
           ),
+          const SizedBox(width: 16),
+          ScaleTransition(
+            scale: _pulse,
+            child: Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.16),
+              ),
+              child: const Icon(
+                Icons.school_rounded,
+                color: Colors.white,
+                size: 30,
+              ),
+            ),
+          ),
         ],
       ),
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({
+    required this.icon,
+    required this.title,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String title;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Row(
+      children: [
+        Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.blueBook.withOpacity(0.06),
+          ),
+          child: Icon(icon, size: 18, color: AppColors.blueBook),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            title,
+            style: textTheme.bodyMedium?.copyWith(color: AppColors.navyDark),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          value,
+          style: textTheme.bodyMedium?.copyWith(
+            color: AppColors.navyDark,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ActivityItem extends StatelessWidget {
+  const _ActivityItem({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.timeLabel,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String timeLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.blueBook.withOpacity(0.06),
+          ),
+          child: Icon(icon, size: 18, color: AppColors.blueBook),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.navyDark,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: textTheme.bodySmall?.copyWith(
+                  color: AppColors.navy.withOpacity(0.65),
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text(
+            timeLabel,
+            style: textTheme.labelSmall?.copyWith(color: AppColors.blueGrey),
+          ),
+        ),
+      ],
     );
   }
 }
