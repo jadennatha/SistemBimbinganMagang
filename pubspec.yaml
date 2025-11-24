@@ -2,7 +2,7 @@ name: sistem_bimbingan_magang
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -36,6 +36,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   firebase_core: ^4.2.1
   cloud_firestore: ^6.1.0
+  firebase_auth: ^6.1.2
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:
@@ -53,14 +55,14 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
+  assets:
+    - assets/images/logo.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
@@ -89,3 +91,33 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  fonts:
+    - family: StackSansText
+      fonts:
+        - asset: assets/fonts/StackSansText-ExtraLight.ttf
+          weight: 200
+        - asset: assets/fonts/StackSansText-Light.ttf
+          weight: 300
+        - asset: assets/fonts/StackSansText-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/StackSansText-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/StackSansText-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/StackSansText-Bold.ttf
+          weight: 700
+    - family: StackSansHeadline
+      fonts:
+        - asset: assets/fonts/StackSansHeadline-ExtraLight.ttf
+          weight: 200
+        - asset: assets/fonts/StackSansHeadline-Light.ttf
+          weight: 300
+        - asset: assets/fonts/StackSansHeadline-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/StackSansHeadline-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/StackSansHeadline-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/StackSansHeadline-Bold.ttf
+          weight: 700

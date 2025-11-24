@@ -1,0 +1,57 @@
+import 'package:flutter/material.dart';
+
+import '../../app/app_colors.dart';
+import 'dashboard_content.dart';
+import 'logbook_content.dart';
+import 'profile_content.dart';
+import 'bimbingan_content.dart';
+import 'floating_navbar.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0;
+
+  void _onTabChanged(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: _buildTabContent(),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+          child: FloatingNavBar(
+            currentIndex: _currentIndex,
+            onChanged: _onTabChanged,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabContent() {
+    switch (_currentIndex) {
+      case 0:
+        return const DashboardContent();
+      case 1:
+        return const LogbookContent();
+      case 2:
+        return const BimbinganContent();
+      case 3:
+      default:
+        return const ProfileContent();
+    }
+  }
+}
