@@ -25,12 +25,6 @@ class FloatingNavBar extends StatelessWidget {
       accent2: AppColors.blueBook,
     ),
     _NavItemData(
-      icon: Icons.people_alt_rounded,
-      label: 'Bimbingan',
-      accent1: AppColors.greenArrow,
-      accent2: AppColors.navyDark,
-    ),
-    _NavItemData(
       icon: Icons.person_rounded,
       label: 'Profil',
       accent1: AppColors.blueGrey,
@@ -45,8 +39,12 @@ class FloatingNavBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.white,
-        // semua sudut bundar
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(0),
+          topRight: Radius.circular(0),
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.08),
@@ -124,7 +122,6 @@ class _NavItemState extends State<_NavItem>
   @override
   void didUpdateWidget(covariant _NavItem oldWidget) {
     super.didUpdateWidget(oldWidget);
-
     if (!oldWidget.selected && widget.selected) {
       _controller.forward(from: 0.0);
     } else if (oldWidget.selected && !widget.selected) {

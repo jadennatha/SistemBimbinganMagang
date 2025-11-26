@@ -117,7 +117,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       body: SafeArea(
         child: Column(
           children: [
-            // hanya tombol Lewati di kanan atas
+            // tombol Lewati kanan atas
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
               child: Row(
@@ -136,6 +136,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               ),
             ),
 
+            // konten utama
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -242,7 +243,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        elevation: 0, // shadow dasar kecil
+                        elevation: 0,
                       ),
                       child: AnimatedSwitcher(
                         duration: const Duration(milliseconds: 200),
@@ -297,20 +298,13 @@ class _OnboardPage extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // ikon lingkaran dengan shadow halus
+        // ikon lingkaran tanpa bayangan hitam
         Container(
           width: 120,
           height: 120,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: AppColors.white,
             shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.12),
-                blurRadius: 14,
-                offset: const Offset(0, 5),
-              ),
-            ],
           ),
           child: Icon(data.icon, size: 50, color: AppColors.navyDark),
         ),
