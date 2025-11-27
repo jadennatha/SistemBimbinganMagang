@@ -34,4 +34,36 @@ class FirestoreService {
           }
         });
   }
+
+  // 3. Fungsi Ambil Nama User/Dosen berdasarkan UID
+  Future<String> getUserNameByUID(String uid) async {
+    try {
+      final docSnapshot = await _db.collection(_userCollection).doc(uid).get();
+      if (docSnapshot.exists && docSnapshot.data() != null) {
+        final data = docSnapshot.data() as Map<String, dynamic>;
+        return data['nama'] ?? '-';
+      } else {
+        return '-';
+      }
+    } catch (e) {
+      print("Error fetching user name: $e");
+      return '-';
+    }
+  }
+
+  // 4. Fungsi Ambil Nama Dosen secara Realtime (Stream)
+  Stream<String> getUserNameStream(String uid) {
+    return _db
+        .collection(_userCollection)
+        .doc(uid)
+        .snapshots()
+        .map((snapshot) {
+          if (snapshot.exists && snapshot.data() != null) {
+            final data = snapshot.data() as Map<String, dynamic>;
+            return data['nama'] ?? '-';
+          } else {
+            return '-';
+          }
+        });
+  }
 }

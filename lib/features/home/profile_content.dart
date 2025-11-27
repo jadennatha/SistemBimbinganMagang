@@ -221,10 +221,10 @@ class ProfileContent extends StatelessWidget {
                         value: user.perusahaan ?? 'Belum ada',
                       ),
                       const SizedBox(height: 10),
-                      _ProfileRow(
+                      _ProfileRowFromUID(
                         icon: Icons.person_rounded,
                         title: 'Dosen Pembimbing',
-                        value: user.dosenID ?? '-',
+                        uid: user.dosenID ?? '-',
                       ),
                     ],
 
@@ -362,6 +362,105 @@ class _ProfileRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ProfileRowFromUID extends StatelessWidget {
+  const _ProfileRowFromUID({
+    required this.icon,
+    required this.title,
+    required this.uid,
+  });
+
+  final IconData icon;
+  final String title;
+  final String uid;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final firestoreService = FirestoreService();
+
+    // Jika UID kosong atau '-', langsung tampilkan '-'
+    if (uid.isEmpty || uid == '-') {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.blueBook.withOpacity(0.07),
+            ),
+            child: Icon(icon, size: 18, color: AppColors.blueBook),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: textTheme.bodySmall?.copyWith(color: AppColors.blueGrey),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '-',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: AppColors.navyDark,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Gunakan StreamBuilder untuk mengambil nama dari UID
+    return StreamBuilder<String>(
+      stream: firestoreService.getUserNameStream(uid),
+      builder: (context, snapshot) {
+        final userName = snapshot.data ?? '-';
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.blueBook.withOpacity(0.07),
+              ),
+              child: Icon(icon, size: 18, color: AppColors.blueBook),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: textTheme.bodySmall?.copyWith(color: AppColors.blueGrey),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    userName,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: AppColors.navyDark,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
