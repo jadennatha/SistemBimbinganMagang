@@ -4,7 +4,6 @@ import '../../app/app_colors.dart';
 import 'dashboard_content.dart';
 import 'logbook_content.dart';
 import 'profile_content.dart';
-import 'bimbingan_content.dart';
 import 'floating_navbar.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -23,6 +22,18 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Widget _buildTabContent() {
+    switch (_currentIndex) {
+      case 0:
+        return const DashboardContent();
+      case 1:
+        return const LogbookContent();
+      case 2:
+      default:
+        return const ProfileContent();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,19 +50,5 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-  }
-
-  Widget _buildTabContent() {
-    switch (_currentIndex) {
-      case 0:
-        return const DashboardContent();
-      case 1:
-        return const LogbookContent();
-      case 2:
-        return const BimbinganContent();
-      case 3:
-      default:
-        return const ProfileContent();
-    }
   }
 }

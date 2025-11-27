@@ -14,11 +14,28 @@ class MyApp extends StatelessWidget {
       theme: _buildTheme(),
       initialRoute: Routes.splash,
       routes: Routes.map,
+      // bikin font adaptif untuk semua layar
+      builder: (context, child) {
+        final media = MediaQuery.of(context);
+        final width = media.size.width;
+
+        // lebar acuan 375 (iphone X / rata-rata HP)
+        const baseWidth = 375.0;
+        double scale = width / baseWidth;
+
+        // batasi supaya tidak terlalu besar/kecil
+        scale = scale.clamp(0.9, 1.15);
+
+        return MediaQuery(
+          data: media.copyWith(textScaleFactor: scale),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 
   ThemeData _buildTheme() {
-    // Tema dasar
+    // tema dasar
     final base = ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
@@ -26,27 +43,62 @@ class MyApp extends StatelessWidget {
         seedColor: AppColors.blueBook,
         brightness: Brightness.dark,
       ),
-      // Semua scaffold pakai warna ini
       scaffoldBackgroundColor: AppColors.background,
-      // Body text pakai StackSansText
       fontFamily: 'StackSansText',
     );
 
-    final textTheme = base.textTheme;
+    final t = base.textTheme;
 
-    // Heading pakai StackSansHeadline
-    final patchedTextTheme = textTheme.copyWith(
-      headlineLarge: textTheme.headlineLarge?.copyWith(
+    // atur ulang ukuran dan font untuk teks
+    final patchedTextTheme = t.copyWith(
+      // judul besar (jarang dipakai)
+      headlineLarge: t.headlineLarge?.copyWith(
         fontFamily: 'StackSansHeadline',
+        fontSize: 26,
         fontWeight: FontWeight.w700,
+        color: AppColors.white,
       ),
-      headlineMedium: textTheme.headlineMedium?.copyWith(
+      // judul sedang (misal di onboarding)
+      headlineMedium: t.headlineMedium?.copyWith(
         fontFamily: 'StackSansHeadline',
+        fontSize: 24,
         fontWeight: FontWeight.w700,
+        color: AppColors.white,
       ),
-      titleLarge: textTheme.titleLarge?.copyWith(
+      // judul appBar / section besar
+      titleLarge: t.titleLarge?.copyWith(
         fontFamily: 'StackSansHeadline',
+        fontSize: 20,
         fontWeight: FontWeight.w700,
+        color: AppColors.white,
+      ),
+      // judul section biasa (Ringkasan minggu ini, dsb.)
+      titleMedium: t.titleMedium?.copyWith(
+        fontFamily: 'StackSansHeadline',
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: AppColors.navyDark,
+      ),
+      // body umum
+      bodyLarge: t.bodyLarge?.copyWith(
+        fontFamily: 'StackSansText',
+        fontSize: 16,
+        color: AppColors.navyDark,
+      ),
+      bodyMedium: t.bodyMedium?.copyWith(
+        fontFamily: 'StackSansText',
+        fontSize: 15,
+        color: AppColors.navyDark,
+      ),
+      bodySmall: t.bodySmall?.copyWith(
+        fontFamily: 'StackSansText',
+        fontSize: 13,
+        color: AppColors.blueGrey,
+      ),
+      labelSmall: t.labelSmall?.copyWith(
+        fontFamily: 'StackSansText',
+        fontSize: 11,
+        color: AppColors.blueGrey,
       ),
     );
 

@@ -1,5 +1,5 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
+
 import '../../../utils/validators.dart';
 import '../data/auth_repository.dart';
 import '../../../app/routes.dart';
@@ -29,9 +29,6 @@ class _LoginScreenState extends State<LoginScreen>
   late final Animation<double> _fade;
   late final Animation<Offset> _slide;
 
-  late final AnimationController _errorController;
-  late final Animation<double> _shakeAnimation;
-
   @override
   void initState() {
     super.initState();
@@ -45,16 +42,8 @@ class _LoginScreenState extends State<LoginScreen>
       begin: const Offset(0, 0.08),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _ac, curve: Curves.easeOutCubic));
-    _ac.forward();
 
-    _errorController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
-    _shakeAnimation = CurvedAnimation(
-      parent: _errorController,
-      curve: Curves.easeInOut,
-    );
+    _ac.forward();
   }
 
   @override
@@ -64,7 +53,6 @@ class _LoginScreenState extends State<LoginScreen>
     _emailNode.dispose();
     _passwordNode.dispose();
     _ac.dispose();
-    _errorController.dispose();
     super.dispose();
   }
 
@@ -153,17 +141,15 @@ class _LoginScreenState extends State<LoginScreen>
       if (!mounted) return;
       setState(() => _loading = false);
 
-      // Berhasil login: langsung pindah ke home, tanpa popup
+      // berhasil login, langsung ke home
       Navigator.pushReplacementNamed(context, Routes.home);
     } on Exception catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
 
-      _errorController.forward(from: 0);
-
       final msg = _friendlyError(e.toString());
 
-      // Gagal login: tampilkan dialog
+      // gagal login, hanya tampilkan dialog tanpa animasi bergetar
       await _showResultDialog(success: false, message: msg);
     }
   }
@@ -175,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen>
     if (m.contains('too-many-requests')) {
       return 'Terlalu banyak percobaan. Coba lagi nanti.';
     }
-    return 'Gagal masuk. Periksa data Kamu.';
+    return 'Periksa data kamu lagi ya..';
   }
 
   OutlineInputBorder _outline(Color c) {
@@ -202,217 +188,185 @@ class _LoginScreenState extends State<LoginScreen>
                     opacity: _fade,
                     child: SlideTransition(
                       position: _slide,
-                      child: AnimatedBuilder(
-                        animation: _shakeAnimation,
-                        builder: (context, child) {
-                          final dx =
-                              math.sin(_shakeAnimation.value * math.pi * 10) *
-                              6;
-                          return Transform.translate(
-                            offset: Offset(dx, 0),
-                            child: child,
-                          );
-                        },
-                        child: Card(
-                          color: AppColors.surfaceLight,
-                          elevation: 10,
-                          shadowColor: Colors.black26,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(24),
+                      child: Card(
+                        color: AppColors.surfaceLight,
+                        elevation: 10,
+                        shadowColor: Colors.black26,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 28,
+                            vertical: 28,
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 28,
-                              vertical: 28,
-                            ),
-                            child: Form(
-                              key: _formKey,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  // Logo dan judul
-                                  Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      TweenAnimationBuilder<double>(
-                                        tween: Tween(begin: 0.9, end: 1.0),
-                                        duration: const Duration(
-                                          milliseconds: 700,
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                // logo dan judul
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    TweenAnimationBuilder<double>(
+                                      tween: Tween(begin: 0.9, end: 1.0),
+                                      duration: const Duration(
+                                        milliseconds: 700,
+                                      ),
+                                      curve: Curves.easeOutBack,
+                                      builder: (context, value, child) {
+                                        return Transform.scale(
+                                          scale: value,
+                                          child: child,
+                                        );
+                                      },
+                                      child: SizedBox(
+                                        height: 120,
+                                        child: Image.asset(
+                                          'assets/images/logo.png',
+                                          fit: BoxFit.contain,
                                         ),
-                                        curve: Curves.easeOutBack,
-                                        builder: (context, value, child) {
-                                          return Transform.scale(
-                                            scale: value,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Masuk ke akun Kamu',
+                                      textAlign: TextAlign.center,
+                                      style: t.bodyMedium?.copyWith(
+                                        color: AppColors.navy.withOpacity(0.75),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 24),
+
+                                // email
+                                TextFormField(
+                                  controller: _email,
+                                  focusNode: _emailNode,
+                                  textInputAction: TextInputAction.next,
+                                  onFieldSubmitted: (_) =>
+                                      _passwordNode.requestFocus(),
+                                  style: const TextStyle(color: AppColors.navy),
+                                  cursorColor: AppColors.navy,
+                                  decoration: InputDecoration(
+                                    hintText: 'nama@kampus.ac.id',
+                                    hintStyle: TextStyle(
+                                      color: AppColors.navy.withOpacity(0.35),
+                                    ),
+                                    border: _outline(
+                                      AppColors.navy.withOpacity(0.15),
+                                    ),
+                                    enabledBorder: _outline(
+                                      AppColors.navy.withOpacity(0.15),
+                                    ),
+                                    focusedBorder: _outline(AppColors.blueBook),
+                                    filled: true,
+                                    fillColor: Colors.white.withOpacity(0.9),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 16,
+                                    ),
+                                  ),
+                                  keyboardType: TextInputType.emailAddress,
+                                  validator: Validators.email,
+                                  autofillHints: const [AutofillHints.username],
+                                ),
+
+                                const SizedBox(height: 16),
+
+                                // password
+                                TextFormField(
+                                  controller: _password,
+                                  focusNode: _passwordNode,
+                                  textInputAction: TextInputAction.done,
+                                  onFieldSubmitted: (_) => _submit(),
+                                  style: const TextStyle(color: AppColors.navy),
+                                  cursorColor: AppColors.navy,
+                                  decoration: InputDecoration(
+                                    hintText: 'Password',
+                                    hintStyle: TextStyle(
+                                      color: AppColors.navy.withOpacity(0.35),
+                                    ),
+                                    border: _outline(
+                                      AppColors.navy.withOpacity(0.15),
+                                    ),
+                                    enabledBorder: _outline(
+                                      AppColors.navy.withOpacity(0.15),
+                                    ),
+                                    focusedBorder: _outline(AppColors.blueBook),
+                                    filled: true,
+                                    fillColor: Colors.white.withOpacity(0.9),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 16,
+                                    ),
+                                    suffixIcon: IconButton(
+                                      onPressed: () =>
+                                          setState(() => _obscure = !_obscure),
+                                      icon: Icon(
+                                        _obscure
+                                            ? Icons.visibility
+                                            : Icons.visibility_off,
+                                        color: AppColors.navy.withOpacity(0.7),
+                                      ),
+                                      tooltip: _obscure
+                                          ? 'Tampilkan'
+                                          : 'Sembunyikan',
+                                    ),
+                                  ),
+                                  obscureText: _obscure,
+                                  validator: Validators.password,
+                                  autofillHints: const [AutofillHints.password],
+                                ),
+
+                                const SizedBox(height: 20),
+
+                                // tombol masuk
+                                SizedBox(
+                                  height: 50,
+                                  child: ElevatedButton(
+                                    onPressed: _loading ? null : _submit,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.blueBook,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                    ),
+                                    child: AnimatedSwitcher(
+                                      duration: const Duration(
+                                        milliseconds: 200,
+                                      ),
+                                      transitionBuilder: (child, anim) =>
+                                          FadeTransition(
+                                            opacity: anim,
                                             child: child,
-                                          );
-                                        },
-                                        child: SizedBox(
-                                          height: 120,
-                                          child: Image.asset(
-                                            'assets/images/logo.png',
-                                            fit: BoxFit.contain,
                                           ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Masuk ke akun Kamu',
-                                        textAlign: TextAlign.center,
-                                        style: t.bodyMedium?.copyWith(
-                                          color: AppColors.navy.withOpacity(
-                                            0.75,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-
-                                  const SizedBox(height: 24),
-
-                                  // Email
-                                  TextFormField(
-                                    controller: _email,
-                                    focusNode: _emailNode,
-                                    textInputAction: TextInputAction.next,
-                                    onFieldSubmitted: (_) =>
-                                        _passwordNode.requestFocus(),
-                                    style: const TextStyle(
-                                      color: AppColors.navy,
-                                    ),
-                                    cursorColor: AppColors.navy,
-                                    decoration: InputDecoration(
-                                      hintText: 'nama@kampus.ac.id',
-                                      hintStyle: TextStyle(
-                                        color: AppColors.navy.withOpacity(0.35),
-                                      ),
-                                      border: _outline(
-                                        AppColors.navy.withOpacity(0.15),
-                                      ),
-                                      enabledBorder: _outline(
-                                        AppColors.navy.withOpacity(0.15),
-                                      ),
-                                      focusedBorder: _outline(
-                                        AppColors.blueBook,
-                                      ),
-                                      filled: true,
-                                      fillColor: Colors.white.withOpacity(0.9),
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 16,
-                                          ),
-                                    ),
-                                    keyboardType: TextInputType.emailAddress,
-                                    validator: Validators.email,
-                                    autofillHints: const [
-                                      AutofillHints.username,
-                                    ],
-                                  ),
-                                  const SizedBox(height: 16),
-
-                                  // Password
-                                  TextFormField(
-                                    controller: _password,
-                                    focusNode: _passwordNode,
-                                    textInputAction: TextInputAction.done,
-                                    onFieldSubmitted: (_) => _submit(),
-                                    style: const TextStyle(
-                                      color: AppColors.navy,
-                                    ),
-                                    cursorColor: AppColors.navy,
-                                    decoration: InputDecoration(
-                                      hintText: 'Password',
-                                      hintStyle: TextStyle(
-                                        color: AppColors.navy.withOpacity(0.35),
-                                      ),
-                                      border: _outline(
-                                        AppColors.navy.withOpacity(0.15),
-                                      ),
-                                      enabledBorder: _outline(
-                                        AppColors.navy.withOpacity(0.15),
-                                      ),
-                                      focusedBorder: _outline(
-                                        AppColors.blueBook,
-                                      ),
-                                      filled: true,
-                                      fillColor: Colors.white.withOpacity(0.9),
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 16,
-                                          ),
-                                      suffixIcon: IconButton(
-                                        onPressed: () => setState(
-                                          () => _obscure = !_obscure,
-                                        ),
-                                        icon: Icon(
-                                          _obscure
-                                              ? Icons.visibility
-                                              : Icons.visibility_off,
-                                          color: AppColors.navy.withOpacity(
-                                            0.7,
-                                          ),
-                                        ),
-                                        tooltip: _obscure
-                                            ? 'Tampilkan'
-                                            : 'Sembunyikan',
-                                      ),
-                                    ),
-                                    obscureText: _obscure,
-                                    validator: Validators.password,
-                                    autofillHints: const [
-                                      AutofillHints.password,
-                                    ],
-                                  ),
-
-                                  const SizedBox(height: 20),
-
-                                  // Tombol masuk
-                                  SizedBox(
-                                    height: 50,
-                                    child: ElevatedButton(
-                                      onPressed: _loading ? null : _submit,
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppColors.blueBook,
-                                        foregroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            16,
-                                          ),
-                                        ),
-                                      ),
-                                      child: AnimatedSwitcher(
-                                        duration: const Duration(
-                                          milliseconds: 200,
-                                        ),
-                                        transitionBuilder: (child, anim) =>
-                                            FadeTransition(
-                                              opacity: anim,
-                                              child: child,
-                                            ),
-                                        child: _loading
-                                            ? const SizedBox(
-                                                key: ValueKey('loading'),
-                                                height: 20,
-                                                width: 20,
-                                                child: CircularProgressIndicator(
-                                                  strokeWidth: 2,
-                                                  valueColor:
-                                                      AlwaysStoppedAnimation<
-                                                        Color
-                                                      >(Colors.white),
-                                                ),
-                                              )
-                                            : const Text(
-                                                'Masuk',
-                                                key: ValueKey('text'),
+                                      child: _loading
+                                          ? const SizedBox(
+                                              key: ValueKey('loading'),
+                                              height: 20,
+                                              width: 20,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<
+                                                      Color
+                                                    >(Colors.white),
                                               ),
-                                      ),
+                                            )
+                                          : const Text(
+                                              'Masuk',
+                                              key: ValueKey('text'),
+                                            ),
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
