@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../app/app_colors.dart';
+import '../logbook/models/logbook_model.dart';
+import '../logbook/services/logbook_service.dart';
 
 class LogbookContent extends StatefulWidget {
   const LogbookContent({super.key});
@@ -14,10 +17,16 @@ class _LogbookContentState extends State<LogbookContent>
   late final AnimationController _btnController;
   late final Animation<double> _scaleAnim;
   late final Animation<double> _glowAnim;
+  final LogbookService _logbookService = LogbookService();
+  late String _studentId;
+  late String _dosenId;
+  late String _mentorId;
+  bool _isUserInitialized = false;
 
   @override
   void initState() {
     super.initState();
+    _initializeUserData();
     _btnController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1300),
@@ -32,6 +41,42 @@ class _LogbookContentState extends State<LogbookContent>
       begin: 0.16,
       end: 0.35,
     ).animate(CurvedAnimation(parent: _btnController, curve: Curves.easeInOut));
+  }
+
+  Future<void> _initializeUserData() async {
+    try {
+      final currentUserId = _logbookService.getCurrentUserId();
+      if (currentUserId == null) {
+        throw Exception('User tidak login');
+      }
+
+      _studentId = currentUserId;
+
+      // Get user data from Firestore to get dosenId and mentorId
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUserId)
+          .get();
+
+      if (userDoc.exists) {
+        final userData = userDoc.data() as Map<String, dynamic>;
+        _dosenId = userData['dosenId'] ?? 'default_dose';
+        _mentorId = userData['mentorId'] ?? 'default_mentor';
+      } else {
+        _dosenId = 'default_dose';
+        _mentorId = 'default_mentor';
+      }
+
+      setState(() {
+        _isUserInitialized = true;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -106,10 +151,22 @@ class _LogbookContentState extends State<LogbookContent>
   }
 
   Future<void> _openLogbookDialog() async {
+    if (!_isUserInitialized) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User data masih dimuat...')),
+      );
+      return;
+    }
+
     final bool? ok = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const _LogbookEntryDialog(),
+      builder: (context) => _LogbookEntryDialog(
+        studentId: _studentId,
+        dosenId: _dosenId,
+        mentorId: _mentorId,
+        logbookService: _logbookService,
+      ),
     );
 
     if (ok == true && mounted) {
@@ -424,7 +481,17 @@ class _LogItem extends StatelessWidget {
 }
 
 class _LogbookEntryDialog extends StatefulWidget {
-  const _LogbookEntryDialog();
+  final String studentId;
+  final String dosenId;
+  final String mentorId;
+  final LogbookService logbookService;
+
+  const _LogbookEntryDialog({
+    required this.studentId,
+    required this.dosenId,
+    required this.mentorId,
+    required this.logbookService,
+  });
 
   @override
   State<_LogbookEntryDialog> createState() => _LogbookEntryDialogState();
@@ -435,6 +502,7 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
   final _judulController = TextEditingController();
   final _tanggalController = TextEditingController();
   final _aktivitasController = TextEditingController();
+  bool _isSaving = false;
 
   DateTime? _tanggal;
 
@@ -493,10 +561,46 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
     }
   }
 
-  void _simpan() {
+  Future<void> _simpan() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (_tanggal == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tanggal harus dipilih')),
+      );
+      return;
+    }
 
-    Navigator.of(context).pop(true);
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      final logbook = LogbookModel(
+        studentId: widget.studentId,
+        date: _tanggal!,
+        activity: _aktivitasController.text,
+        judulKegiatan: _judulController.text,
+        statusDosen: 'pending',
+        statusMentor: 'pending',
+        dosenId: widget.dosenId,
+        mentorId: widget.mentorId,
+      );
+
+      await widget.logbookService.createLogbook(logbook);
+
+      if (mounted) {
+        Navigator.of(context).pop(true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+        setState(() {
+          _isSaving = false;
+        });
+      }
+    }
   }
 
   @override
