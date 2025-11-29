@@ -397,27 +397,17 @@ class _TodayStatusCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Logbook hari ini',
-                  style: t.bodyMedium?.copyWith(
+                  'Logbook',
+                  style: t.titleLarge?.copyWith(
                     color: AppColors.navyDark,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Belum ada catatan. Tambah satu entri.',
+                  'Catat Aktivitas Harian Magang di sini',
                   style: t.bodySmall?.copyWith(
                     color: AppColors.navy.withOpacity(0.7),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(999),
-                  child: LinearProgressIndicator(
-                    value: 0.0,
-                    minHeight: 5,
-                    backgroundColor: AppColors.blueGrey.withOpacity(0.25),
-                    color: AppColors.greenArrow,
                   ),
                 ),
               ],
@@ -590,23 +580,30 @@ class _LogbookDetailDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
 
-    return AlertDialog(
+    return Dialog(
       backgroundColor: AppColors.surfaceLight,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-      contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-      title: Text(
-        'Detail Logbook',
-        style: t.titleLarge?.copyWith(
-          color: AppColors.navyDark,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+            child: Text(
+              'Detail Logbook',
+              style: t.titleLarge?.copyWith(
+                color: AppColors.navyDark,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
             _DetailItem(
               label: 'Judul Kegiatan',
               value: logbook.judulKegiatan,
@@ -658,15 +655,36 @@ class _LogbookDetailDialog extends StatelessWidget {
                 ),
               ],
             ),
-          ],
-        ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+            child: SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: () => Navigator.pop(context),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  backgroundColor: AppColors.blueBook,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  
+                ),
+                child: Text(
+                  'Tutup',
+                  style: t.bodyLarge?.copyWith(
+                    color: AppColors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Tutup'),
-        ),
-      ],
     );
   }
 }
@@ -811,7 +829,7 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
       context: context,
       initialDate: _tanggal ?? now,
       firstDate: DateTime(now.year - 1),
-      lastDate: DateTime(now.year + 1),
+      lastDate: now, // Hanya bisa pilih hingga hari ini
       helpText: '',
       builder: (context, child) {
         final base = Theme.of(context);
@@ -844,12 +862,103 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
     }
   }
 
+  void _showErrorMessage(String message) {
+    // Hapus SnackBar yang sedang ditampilkan
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    
+    // Tampilkan pesan error di dalam dialog menggunakan AlertDialog
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: AppColors.surfaceLight,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.warning_rounded,
+                    color: Colors.red,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.navyDark,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'OK',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _simpan() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (_tanggal == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tanggal harus dipilih')),
-      );
+      _showErrorMessage('Tanggal harus dipilih');
+      return;
+    }
+
+    // Validasi: Tanggal tidak boleh lebih dari hari ini
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final selectedDate = DateTime(_tanggal!.year, _tanggal!.month, _tanggal!.day);
+
+    if (selectedDate.isAfter(today)) {
+      _showErrorMessage('Tanggal tidak boleh melebihi hari ini');
+      return;
+    }
+
+    // Validasi: Cek apakah tanggal sudah ada di logbook
+    try {
+      final existingLogbooks = await widget.logbookService
+          .getLogbooksByDateRange(widget.studentId, selectedDate, selectedDate.add(const Duration(days: 1)))
+          .first;
+
+      if (existingLogbooks.isNotEmpty) {
+        if (mounted) {
+          _showErrorMessage('Logbook untuk tanggal ini sudah ada. Silakan tunggu proses verifikasi selesai.');
+        }
+        return;
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorMessage('Error validasi tanggal: $e');
+      }
       return;
     }
 
@@ -872,9 +981,7 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        _showErrorMessage('Error: $e');
       }
     }
   }
