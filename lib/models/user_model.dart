@@ -8,8 +8,8 @@ class UserModel {
   final String? nim;
   final String? prodi;
   final String? kelas;
-  final String? dosenID;
-  final String? mentorID;
+  final String? dosenId;
+  final String? mentorId;
   final String? perusahaan; // untuk Mentor juga
   final String? posisi; // untuk Mentor juga
 
@@ -25,8 +25,8 @@ class UserModel {
     this.nim,
     this.prodi,
     this.kelas,
-    this.dosenID,
-    this.mentorID,
+    this.dosenId,
+    this.mentorId,
     this.perusahaan,
     this.posisi,
     this.fakultas,
@@ -46,8 +46,8 @@ class UserModel {
       nim: data['nim'],
       prodi: data['prodi'],
       kelas: data['kelas'],
-      dosenID: data['dosenID'],
-      mentorID: data['mentorID'],
+      dosenId: data['dosenId'],
+      mentorId: data['mentorId'],
       perusahaan: data['perusahaan'],
       posisi: data['posisi'],
       nip: data['nip'],
@@ -70,8 +70,8 @@ class UserModel {
       data['nim'] = nim;
       data['prodi'] = prodi;
       data['kelas'] = kelas;
-      data['dosenID'] = dosenID;
-      data['mentorID'] = mentorID;
+      data['dosenId'] = dosenId;
+      data['mentorId'] = mentorId;
       data['perusahaan'] = perusahaan;
       data['posisi'] = posisi;
     } else if (role == 'dosen') {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:cloud_firestore/cloud_firestore.dart'; // Tidak perlu jika pakai service
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../models/user_model.dart';
 import '../../services/firestore_service.dart';
@@ -12,11 +12,8 @@ class ProfileContent extends StatelessWidget {
 
   Future<void> _signOut(BuildContext context) async {
     try {
-      // simpan navigator dulu supaya tidak pakai context setelah await
       final navigator = Navigator.of(context);
-
       await FirebaseAuth.instance.signOut();
-
       navigator.pushNamedAndRemoveUntil(Routes.login, (route) => false);
     } catch (_) {}
   }
@@ -69,11 +66,11 @@ class ProfileContent extends StatelessWidget {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
                         color: Colors.black26,
                         blurRadius: 18,
-                        offset: const Offset(0, 12),
+                        offset: Offset(0, 12),
                       ),
                     ],
                   ),
@@ -151,7 +148,7 @@ class ProfileContent extends StatelessWidget {
 
                 // === DATA AKUN ===
                 Text(
-                  'Data akun',
+                  'Data Akun',
                   style: textTheme.titleMedium?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -185,10 +182,10 @@ class ProfileContent extends StatelessWidget {
                 // === LOGIKA JUDUL DINAMIS ===
                 Text(
                   user.role == 'mahasiswa'
-                      ? 'Informasi Magang'
+                      ? 'Informasi Mahasiswa'
                       : (user.role == 'dosen'
-                            ? 'Informasi Akademik'
-                            : 'Informasi Perusahaan'),
+                          ? 'Informasi Akademik'
+                          : 'Informasi Perusahaan'),
                   style: textTheme.titleMedium?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -196,35 +193,62 @@ class ProfileContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
 
-                // === ISI INFORMASI (Cek Logic di sini) ===
+                // === ISI INFORMASI ===
                 _SectionCard(
                   children: [
                     // JIKA MAHASISWA
                     if (user.role == 'mahasiswa') ...[
                       _ProfileRow(
+                        icon: Icons.numbers_rounded, 
+                        title: 'NIM',
+                        value: user.nim ?? '-',
+                      ),
+                      const SizedBox(height: 10,),
+                      _ProfileRow(
                         icon: Icons.school_rounded,
                         title: 'Program studi',
-                        value:
-                            user.prodi ??
-                            '-', // <-- Cek di Firestore ada field 'jurusan' ga?
+                        value: user.prodi ?? '-',
                       ),
                       const SizedBox(height: 10),
                       _ProfileRow(
                         icon: Icons.class_rounded,
                         title: 'Kelas',
-                        value: user.kelas ?? '-', // <-- Cek field 'kelas'
+                        value: user.kelas ?? '-',
                       ),
                       const SizedBox(height: 10),
                       _ProfileRow(
-                        icon: Icons.business_rounded,
-                        title: 'Tempat Magang',
-                        value: user.perusahaan ?? 'Belum ada',
+                        icon: Icons.apartment_rounded, 
+                        title: 'Perusahaan Magang',
+                        value: user.perusahaan ?? '-',
                       ),
                       const SizedBox(height: 10),
+                      _ProfileRow(
+                        icon: Icons.work_outline_rounded,
+                        title: 'Posisi Magang',
+                        value: user.posisi ?? '-',
+                      ),
+                      const SizedBox(height: 10),
+                      
+                      // -- Menampilkan MENTOR (Fetch dari ID) --
+                      _ProfileRow(
+                        icon: Icons.business_rounded,
+                        title: 'Mentor Perusahaan',
+                        customWidget: _UserNameFetcher(
+                          userId: user.mentorId,
+                          fallbackText: user.perusahaan ?? 'Belum ada',
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
+                      
+                      // -- Menampilkan DOSEN (Fetch dari ID) --
                       _ProfileRow(
                         icon: Icons.person_rounded,
                         title: 'Dosen Pembimbing',
-                        value: user.dosenID ?? '-',
+                        customWidget: _UserNameFetcher(
+                          userId: user.dosenId,
+                          fallbackText: 'Belum ditentukan',
+                        ),
                       ),
                     ],
 
@@ -243,7 +267,7 @@ class ProfileContent extends StatelessWidget {
                       ),
                     ],
 
-                    // JIKA MENTOR / LAINNYA (Fallback)
+                    // JIKA MENTOR
                     if (user.role == 'mentor') ...[
                       _ProfileRow(
                         icon: Icons.apartment_rounded,
@@ -252,14 +276,13 @@ class ProfileContent extends StatelessWidget {
                       ),
                     ],
 
-                    // JIKA DATA KOSONG (DEBUGGING HELP)
-                    // Kalau role tidak cocok sama sekali, munculkan teks ini biar tau
+                    // JIKA ROLE TIDAK DIKENALI
                     if (user.role != 'mahasiswa' &&
                         user.role != 'dosen' &&
                         user.role != 'mentor')
                       Text(
                         "Role tidak dikenali: ${user.role}",
-                        style: TextStyle(color: Colors.red),
+                        style: const TextStyle(color: Colors.red),
                       ),
                   ],
                 ),
@@ -292,14 +315,16 @@ class ProfileContent extends StatelessWidget {
   }
 }
 
-// Widget Helper (_SectionCard, _ProfileRow, dll) biarkan sama seperti sebelumnya
-// ...
+// =======================================================
+// WIDGET HELPERS
+// =======================================================
+
 class _SectionCard extends StatelessWidget {
   const _SectionCard({required this.children});
   final List<Widget> children;
+  
   @override
   Widget build(BuildContext context) {
-    // Tambahkan constraint minHeight biar kalau kosong minimal kelihatan kotak putihnya
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
@@ -319,13 +344,18 @@ class _SectionCard extends StatelessWidget {
 
 class _ProfileRow extends StatelessWidget {
   const _ProfileRow({
+    // super.key,
     required this.icon,
     required this.title,
-    required this.value,
+    this.value,        // Tidak required lagi
+    this.customWidget, // Tambahan untuk widget loading
   });
+
   final IconData icon;
   final String title;
-  final String value;
+  final String? value;
+  final Widget? customWidget;
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -351,8 +381,12 @@ class _ProfileRow extends StatelessWidget {
                 style: textTheme.bodySmall?.copyWith(color: AppColors.blueGrey),
               ),
               const SizedBox(height: 2),
+              
+              // Jika ada customWidget (misal loading nama dosen), pakai itu.
+              // Jika tidak, pakai Text biasa.
+              customWidget ?? 
               Text(
-                value,
+                value ?? '-',
                 style: textTheme.bodyMedium?.copyWith(
                   color: AppColors.navyDark,
                   fontWeight: FontWeight.w600,
@@ -362,6 +396,62 @@ class _ProfileRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// Widget khusus untuk mengambil Nama dari User ID (Firestore)
+class _UserNameFetcher extends StatelessWidget {
+  final String? userId;
+  final String fallbackText;
+
+  const _UserNameFetcher({
+    // super.key,
+    required this.userId,
+    this.fallbackText = '-',
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // 1. Jika ID kosong, tampilkan fallback
+    if (userId == null || userId!.isEmpty) {
+      return Text(
+        fallbackText,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppColors.navyDark,
+              fontWeight: FontWeight.w600,
+            ),
+      );
+    }
+
+    // 2. Ambil data user dari Firestore berdasarkan ID
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection('users').doc(userId).get(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Text("...", style: TextStyle(color: Colors.grey));
+        }
+
+        if (snapshot.hasData && snapshot.data!.exists) {
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+          final nama = data['nama'] ?? 'Tanpa Nama';
+
+          return Text(
+            nama,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.navyDark,
+                  fontWeight: FontWeight.w600,
+                ),
+          );
+        }
+
+        return const Text(
+          "Tidak ditemukan",
+          style: TextStyle(color: Colors.red, fontSize: 12),
+        );
+      },
     );
   }
 }
