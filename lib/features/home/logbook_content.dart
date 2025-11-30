@@ -22,6 +22,7 @@ class _LogbookContentState extends State<LogbookContent>
   late String _dosenId;
   late String _mentorId;
   bool _isUserInitialized = false;
+  String _filterType = 'hari_ini'; // hari_ini, minggu_ini, semua
 
   @override
   void initState() {
@@ -60,10 +61,10 @@ class _LogbookContentState extends State<LogbookContent>
 
       if (userDoc.exists) {
         final userData = userDoc.data() as Map<String, dynamic>;
-        _dosenId = userData['dosenId'] ?? 'default_dose';
+        _dosenId = userData['dosenId'] ?? 'default_dosen';
         _mentorId = userData['mentorId'] ?? 'default_mentor';
       } else {
-        _dosenId = 'default_dose';
+        _dosenId = 'default_dosen';
         _mentorId = 'default_mentor';
       }
 
@@ -174,70 +175,38 @@ class _LogbookContentState extends State<LogbookContent>
     }
   }
 
+  Stream<List<LogbookModel>> _getFilteredLogbooks() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final weekStart = today.subtract(Duration(days: today.weekday - 1));
+    final weekEnd = weekStart.add(const Duration(days: 6));
+
+    switch (_filterType) {
+      case 'hari_ini':
+        return _logbookService
+            .getLogbooksByDateRange(_studentId, today, today.add(const Duration(days: 1)))
+            .map((logbooks) => logbooks.toList());
+      case 'minggu_ini':
+        return _logbookService
+            .getLogbooksByDateRange(_studentId, weekStart, weekEnd.add(const Duration(days: 1)))
+            .map((logbooks) => logbooks.toList());
+      case 'semua':
+      default:
+        return _logbookService.getStudentLogbooks(_studentId);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
 
     return SafeArea(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 56, 20, 24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const _TodayStatusCard(),
-            const SizedBox(height: 24),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceLight,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.16),
-                    blurRadius: 18,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const _FilterChipsRow(),
-                  const SizedBox(height: 8),
-                  Divider(
-                    color: AppColors.navy.withOpacity(0.08),
-                    height: 24,
-                    thickness: 1,
-                  ),
-                  Text(
-                    'Riwayat singkat',
-                    style: t.titleMedium?.copyWith(
-                      color: AppColors.navyDark,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  const _LogItem(
-                    dayLabel: 'Hari ini',
-                    title: 'Laporan harian',
-                    status: 'Draft tersimpan',
-                  ),
-                  const SizedBox(height: 10),
-                  const _LogItem(
-                    dayLabel: 'Kemarin',
-                    title: 'Observasi lapangan',
-                    status: 'Sudah dikirim',
-                  ),
-                  const SizedBox(height: 10),
-                  const _LogItem(
-                    dayLabel: '2 hari lalu',
-                    title: 'Diskusi dengan pembimbing',
-                    status: 'Sudah dikirim',
-                  ),
-                ],
-              ),
-            ),
             const SizedBox(height: 32),
             AnimatedBuilder(
               animation: _btnController,
@@ -286,9 +255,102 @@ class _LogbookContentState extends State<LogbookContent>
                 ),
               ),
             ),
+            const SizedBox(height: 24),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceLight,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.16),
+                    blurRadius: 18,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _FilterChipsRow(
+                    selectedFilter: _filterType,
+                    onFilterChanged: (filter) {
+                      setState(() {
+                        _filterType = filter;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Divider(
+                    color: AppColors.navy.withOpacity(0.08),
+                    height: 24,
+                    thickness: 1,
+                  ),
+                  Text(
+                    'Daftar logbook',
+                    style: t.titleMedium?.copyWith(
+                      color: AppColors.navyDark,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  StreamBuilder<List<LogbookModel>>(
+                    stream: _getFilteredLogbooks(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      if (snapshot.hasError) {
+                        return Center(
+                          child: Text('Error: ${snapshot.error}'),
+                        );
+                      }
+
+                      final logbooks = snapshot.data ?? [];
+
+                      if (logbooks.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Text(
+                              'Tidak ada logbook',
+                              style: t.bodyMedium?.copyWith(
+                                color: AppColors.navy.withOpacity(0.6),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+
+                      return Column(
+                        children: List.generate(logbooks.length, (index) {
+                          final logbook = logbooks[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: _LogItemClickable(
+                              logbook: logbook,
+                              onTap: () => _showLogbookDetail(logbook),
+                            ),
+                          );
+                        }),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  void _showLogbookDetail(LogbookModel logbook) {
+    showDialog(
+      context: context,
+      builder: (context) => _LogbookDetailDialog(logbook: logbook),
     );
   }
 }
@@ -335,27 +397,17 @@ class _TodayStatusCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Logbook hari ini',
-                  style: t.bodyMedium?.copyWith(
+                  'Logbook',
+                  style: t.titleLarge?.copyWith(
                     color: AppColors.navyDark,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Belum ada catatan. Tambah satu entri.',
+                  'Catat Aktivitas Harian Magang di sini',
                   style: t.bodySmall?.copyWith(
                     color: AppColors.navy.withOpacity(0.7),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(999),
-                  child: LinearProgressIndicator(
-                    value: 0.0,
-                    minHeight: 5,
-                    backgroundColor: AppColors.blueGrey.withOpacity(0.25),
-                    color: AppColors.greenArrow,
                   ),
                 ),
               ],
@@ -368,114 +420,364 @@ class _TodayStatusCard extends StatelessWidget {
 }
 
 class _FilterChipsRow extends StatelessWidget {
-  const _FilterChipsRow();
+  final String selectedFilter;
+  final Function(String) onFilterChanged;
+
+  const _FilterChipsRow({
+    required this.selectedFilter,
+    required this.onFilterChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: const [
-        _FilterChip(label: 'Hari ini', selected: true),
-        SizedBox(width: 8),
-        _FilterChip(label: 'Minggu ini', selected: false),
-        SizedBox(width: 8),
-        _FilterChip(label: 'Semua', selected: false),
+      children: [
+        _FilterChip(
+          label: 'Hari ini',
+          selected: selectedFilter == 'hari_ini',
+          onTap: () => onFilterChanged('hari_ini'),
+        ),
+        const SizedBox(width: 8),
+        _FilterChip(
+          label: 'Minggu ini',
+          selected: selectedFilter == 'minggu_ini',
+          onTap: () => onFilterChanged('minggu_ini'),
+        ),
+        const SizedBox(width: 8),
+        _FilterChip(
+          label: 'Semua',
+          selected: selectedFilter == 'semua',
+          onTap: () => onFilterChanged('semua'),
+        ),
       ],
     );
   }
 }
 
 class _FilterChip extends StatelessWidget {
-  const _FilterChip({required this.label, required this.selected});
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   final String label;
   final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: selected ? Colors.white : Colors.white.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: selected ? Colors.white : Colors.white.withOpacity(0.25),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? Colors.white : Colors.white.withOpacity(0.06),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: selected ? Colors.white : Colors.white.withOpacity(0.25),
+          ),
         ),
-      ),
-      child: Text(
-        label,
-        style: t.bodySmall?.copyWith(
-          color: selected ? AppColors.navyDark : AppColors.navy,
-          fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+        child: Text(
+          label,
+          style: t.bodySmall?.copyWith(
+            color: selected ? AppColors.navyDark : AppColors.navy,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+          ),
         ),
       ),
     );
   }
 }
 
-class _LogItem extends StatelessWidget {
-  const _LogItem({
-    required this.dayLabel,
-    required this.title,
-    required this.status,
-  });
+class _LogItemClickable extends StatelessWidget {
+  final LogbookModel logbook;
+  final VoidCallback onTap;
 
-  final String dayLabel;
-  final String title;
-  final String status;
+  const _LogItemClickable({
+    required this.logbook,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 30,
-          height: 30,
-          decoration: BoxDecoration(
-            color: AppColors.blueBook.withOpacity(0.12),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.note_alt_outlined,
-            size: 18,
-            color: AppColors.blueBook,
-          ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.8),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.navy.withOpacity(0.1)),
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                dayLabel,
-                style: t.bodySmall?.copyWith(
-                  color: AppColors.blueGrey,
-                  fontWeight: FontWeight.w500,
-                ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.blueBook.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(10),
               ),
-              const SizedBox(height: 2),
-              Text(
-                title,
-                style: t.bodyMedium?.copyWith(
-                  color: AppColors.navyDark,
-                  fontWeight: FontWeight.w600,
-                ),
+              child: const Icon(
+                Icons.note_alt_outlined,
+                size: 20,
+                color: AppColors.blueBook,
               ),
-              const SizedBox(height: 2),
-              Text(
-                status,
-                style: t.bodySmall?.copyWith(
-                  color: AppColors.navy.withOpacity(0.7),
-                ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    logbook.judulKegiatan,
+                    style: t.bodyMedium?.copyWith(
+                      color: AppColors.navyDark,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${logbook.date.day}/${logbook.date.month}/${logbook.date.year}',
+                    style: t.bodySmall?.copyWith(
+                      color: AppColors.navy.withOpacity(0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: AppColors.navy.withOpacity(0.5),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LogbookDetailDialog extends StatelessWidget {
+  final LogbookModel logbook;
+
+  const _LogbookDetailDialog({
+    required this.logbook,
+  });
+
+  Color _getStatusColor(String status) {
+    if (status == 'approved') return AppColors.greenArrow;
+    if (status == 'rejected') return Colors.red;
+    return AppColors.blueGrey;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+
+    return Dialog(
+      backgroundColor: AppColors.surfaceLight,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+            child: Text(
+              'Detail Logbook',
+              style: t.titleLarge?.copyWith(
+                color: AppColors.navyDark,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+            _DetailItem(
+              label: 'Judul Kegiatan',
+              value: logbook.judulKegiatan,
+            ),
+            const SizedBox(height: 16),
+            _DetailItem(
+              label: 'Tanggal',
+              value: '${logbook.date.day}/${logbook.date.month}/${logbook.date.year}',
+            ),
+            const SizedBox(height: 16),
+            _DetailItem(
+              label: 'Aktivitas',
+              value: logbook.activity,
+              isMultiline: true,
+            ),
+            if (logbook.komentar.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              _DetailItem(
+                label: 'Komentar',
+                value: logbook.komentar,
+                isMultiline: true,
               ),
             ],
+            const SizedBox(height: 20),
+            Text(
+              'Status Persetujuan',
+              style: t.bodySmall?.copyWith(
+                color: AppColors.navy.withOpacity(0.7),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: _StatusBadge(
+                    label: 'Dosen',
+                    status: logbook.statusDosen,
+                    color: _getStatusColor(logbook.statusDosen),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _StatusBadge(
+                    label: 'Mentor',
+                    status: logbook.statusMentor,
+                    color: _getStatusColor(logbook.statusMentor),
+                  ),
+                ),
+              ],
+            ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+            child: SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: () => Navigator.pop(context),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  backgroundColor: AppColors.blueBook,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  
+                ),
+                child: Text(
+                  'Tutup',
+                  style: t.bodyLarge?.copyWith(
+                    color: AppColors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DetailItem extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool isMultiline;
+
+  const _DetailItem({
+    required this.label,
+    required this.value,
+    this.isMultiline = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: t.bodySmall?.copyWith(
+            color: AppColors.navy.withOpacity(0.7),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.navy.withOpacity(0.1)),
+          ),
+          child: Text(
+            value,
+            style: t.bodyMedium?.copyWith(
+              color: AppColors.navyDark,
+            ),
+            maxLines: isMultiline ? null : 1,
+            overflow: isMultiline ? null : TextOverflow.ellipsis,
           ),
         ),
       ],
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  final String label;
+  final String status;
+  final Color color;
+
+  const _StatusBadge({
+    required this.label,
+    required this.status,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Text(
+            label,
+            style: t.bodySmall?.copyWith(
+              color: AppColors.navy.withOpacity(0.7),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            status.toUpperCase(),
+            style: t.bodySmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -502,7 +804,6 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
   final _judulController = TextEditingController();
   final _tanggalController = TextEditingController();
   final _aktivitasController = TextEditingController();
-  bool _isSaving = false;
 
   DateTime? _tanggal;
 
@@ -528,7 +829,7 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
       context: context,
       initialDate: _tanggal ?? now,
       firstDate: DateTime(now.year - 1),
-      lastDate: DateTime(now.year + 1),
+      lastDate: now, // Hanya bisa pilih hingga hari ini
       helpText: '',
       builder: (context, child) {
         final base = Theme.of(context);
@@ -561,18 +862,105 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
     }
   }
 
+  void _showErrorMessage(String message) {
+    // Hapus SnackBar yang sedang ditampilkan
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    
+    // Tampilkan pesan error di dalam dialog menggunakan AlertDialog
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: AppColors.surfaceLight,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.warning_rounded,
+                    color: Colors.red,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.navyDark,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'OK',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _simpan() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (_tanggal == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tanggal harus dipilih')),
-      );
+      _showErrorMessage('Tanggal harus dipilih');
       return;
     }
 
-    setState(() {
-      _isSaving = true;
-    });
+    // Validasi: Tanggal tidak boleh lebih dari hari ini
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final selectedDate = DateTime(_tanggal!.year, _tanggal!.month, _tanggal!.day);
+
+    if (selectedDate.isAfter(today)) {
+      _showErrorMessage('Tanggal tidak boleh melebihi hari ini');
+      return;
+    }
+
+    // Validasi: Cek apakah tanggal sudah ada di logbook
+    try {
+      final existingLogbooks = await widget.logbookService
+          .getLogbooksByDateRange(widget.studentId, selectedDate, selectedDate.add(const Duration(days: 1)))
+          .first;
+
+      if (existingLogbooks.isNotEmpty) {
+        if (mounted) {
+          _showErrorMessage('Logbook untuk tanggal ini sudah ada. Silakan tunggu proses verifikasi selesai.');
+        }
+        return;
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorMessage('Error validasi tanggal: $e');
+      }
+      return;
+    }
 
     try {
       final logbook = LogbookModel(
@@ -593,12 +981,7 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-        setState(() {
-          _isSaving = false;
-        });
+        _showErrorMessage('Error: $e');
       }
     }
   }
