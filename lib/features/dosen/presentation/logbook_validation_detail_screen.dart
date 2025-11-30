@@ -188,7 +188,7 @@ class LogbookValidationDetailScreen extends StatelessWidget {
 
                     const SizedBox(height: 24),
 
-                    // bagian tindakan dosen hanya muncul jika belum disetujui
+                    // hanya tampil kalau belum disetujui
                     if (!item.isApproved) ...[
                       Text(
                         'Tindakan dosen',
@@ -198,6 +198,7 @@ class LogbookValidationDetailScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 10),
+
                       Row(
                         children: [
                           Expanded(
@@ -257,6 +258,7 @@ class LogbookValidationDetailScreen extends StatelessWidget {
   void _showRevisionSheet(BuildContext context) {
     final t = Theme.of(context).textTheme;
     final controller = TextEditingController();
+    String? errorText;
 
     showModalBottomSheet<bool>(
       context: context,
@@ -270,124 +272,118 @@ class LogbookValidationDetailScreen extends StatelessWidget {
 
         return Padding(
           padding: EdgeInsets.fromLTRB(20, 16, 20, 16 + bottom),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    color: AppColors.blueGrey.withOpacity(0.4),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
-              ),
-              Text(
-                'Catatan revisi',
-                style: t.titleMedium?.copyWith(
-                  color: AppColors.navyDark,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Tulis catatan yang ingin Kamu sampaikan ke mahasiswa.',
-                style: t.bodySmall?.copyWith(
-                  color: AppColors.navy.withOpacity(0.75),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: controller,
-                maxLines: 4,
-                cursorColor: AppColors.navyDark,
-                decoration: InputDecoration(
-                  alignLabelWithHint: true,
-                  hintText: 'Contoh. Mohon jelaskan tujuan kegiatan hari ini.',
-                  hintStyle: t.bodySmall?.copyWith(color: AppColors.blueGrey),
-                  filled: true,
-                  fillColor: Colors.white,
-                  errorText: null,
-                  errorMaxLines: 2,
-                  errorStyle: t.bodySmall?.copyWith(color: Colors.red.shade400),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(
-                      color: AppColors.blueGrey.withOpacity(0.4),
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(
-                      color: AppColors.blueGrey.withOpacity(0.4),
-                    ),
-                  ),
-                  focusedBorder: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(14)),
-                    borderSide: BorderSide(
-                      color: AppColors.blueBook,
-                      width: 1.4,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 6),
-              // teks error manual supaya selalu rata kiri
-              ValueListenableBuilder<TextEditingValue>(
-                valueListenable: controller,
-                builder: (context, value, _) {
-                  final empty = value.text.trim().isEmpty;
-                  if (!empty) return const SizedBox.shrink();
-
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      'Catatan revisi tidak boleh kosong',
-                      textAlign: TextAlign.left,
-                      style: t.bodySmall?.copyWith(color: Colors.red.shade400),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 10),
-              Row(
+          child: StatefulBuilder(
+            builder: (context, setStateSheet) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.of(sheetContext).pop(false);
-                      },
-                      child: const Text('Batal'),
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.blueGrey.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        final note = controller.text.trim();
-                        if (note.isEmpty) {
-                          // biar teks error muncul, cukup panggil notifyListeners
-                          controller.value = controller.value.copyWith();
-                          return;
-                        }
-                        Navigator.of(sheetContext).pop(true);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange.shade600,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                  Text(
+                    'Catatan revisi',
+                    style: t.titleMedium?.copyWith(
+                      color: AppColors.navyDark,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Tulis catatan yang ingin Kamu sampaikan ke mahasiswa.',
+                    style: t.bodySmall?.copyWith(
+                      color: AppColors.navy.withOpacity(0.75),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controller,
+                    maxLines: 4,
+                    cursorColor: AppColors.navyDark,
+                    onChanged: (_) {
+                      if (errorText != null) {
+                        setStateSheet(() {
+                          errorText = null;
+                        });
+                      }
+                    },
+                    decoration: InputDecoration(
+                      hintText:
+                          'Contoh. Mohon jelaskan tujuan kegiatan hari ini.',
+                      hintStyle: t.bodySmall?.copyWith(
+                        color: AppColors.blueGrey,
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      errorText: errorText,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: AppColors.blueGrey.withOpacity(0.4),
                         ),
                       ),
-                      child: const Text('Kirim revisi'),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: AppColors.blueGrey.withOpacity(0.4),
+                        ),
+                      ),
+                      focusedBorder: const OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(14)),
+                        borderSide: BorderSide(
+                          color: AppColors.blueBook,
+                          width: 1.4,
+                        ),
+                      ),
                     ),
                   ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(sheetContext).pop(false);
+                          },
+                          child: const Text('Batal'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            final note = controller.text.trim();
+                            if (note.isEmpty) {
+                              setStateSheet(() {
+                                errorText = 'Catatan revisi tidak boleh kosong';
+                              });
+                              return;
+                            }
+                            Navigator.of(sheetContext).pop(true);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange.shade600,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: const Text('Kirim revisi'),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
-              ),
-            ],
+              );
+            },
           ),
         );
       },
