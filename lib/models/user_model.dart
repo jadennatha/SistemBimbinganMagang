@@ -12,6 +12,8 @@ class UserModel {
   final String? mentorID;
   final String? perusahaan; // untuk Mentor juga
   final String? posisi; // untuk Mentor juga
+  final DateTime? tglMulai; // untuk Mahasiswa magang
+  final DateTime? tglSelesai; // untuk Mahasiswa magang
 
   // Data Dosen
   final String? nip;
@@ -31,11 +33,20 @@ class UserModel {
     this.posisi,
     this.fakultas,
     this.nip,
+    this.tglMulai,
+    this.tglSelesai,
   });
 
   // FUNGSI 1: Mengubah Data dari Firestore (Map) ke Object Dart
   // Dipakai saat mengambil data (Get / Read)
   factory UserModel.fromMap(Map<String, dynamic> data) {
+    DateTime? _parseDate(dynamic value) {
+      if (value == null) return null;
+      if (value is DateTime) return value;
+      if (value is String) return DateTime.tryParse(value);
+      return null;
+    }
+
     return UserModel(
       uid: data['uid'] ?? '',
       email: data['email'] ?? '',
@@ -52,6 +63,8 @@ class UserModel {
       posisi: data['posisi'],
       nip: data['nip'],
       fakultas: data['fakultas'],
+      tglMulai: _parseDate(data['tglMulai']),
+      tglSelesai: _parseDate(data['tglSelesai'])
     );
   }
 
@@ -74,6 +87,8 @@ class UserModel {
       data['mentorID'] = mentorID;
       data['perusahaan'] = perusahaan;
       data['posisi'] = posisi;
+      data['tglMulai'] = tglMulai;
+      data['tglSelesai'] = tglSelesai;
     } else if (role == 'dosen') {
       data['nip'] = nip;
       data['fakultas'] = fakultas;

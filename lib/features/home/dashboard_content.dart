@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../app/app_colors.dart';
+import '../../services/firestore_service.dart';
 import '../logbook/models/logbook_model.dart';
 import '../logbook/services/logbook_service.dart';
 
@@ -131,7 +132,7 @@ class _DashboardContentState extends State<DashboardContent> {
             const SizedBox(height: 28),
 
             // Kartu progres
-            const _ProgressCard(),
+            _ProgressCard(studentId: _studentId),
 
             const SizedBox(height: 24),
 
@@ -202,11 +203,19 @@ class _SummaryCard extends StatelessWidget {
     final today = DateTime(now.year, now.month, now.day);
     final weekStart = today.subtract(Duration(days: today.weekday - 1));
     final weekEnd = weekStart.add(const Duration(days: 6));
+    final _firestoreService = FirestoreService();
 
     return StreamBuilder<List<LogbookModel>>(
-      stream: logbookService.getLogbooksByDateRange(studentId, weekStart, weekEnd.add(const Duration(days: 1))),
+      stream: logbookService.getStudentLogbooks(studentId),
       builder: (context, snapshot) {
-        final logbookCount = snapshot.data?.length ?? 0;
+        // Hitung logbook minggu ini untuk ringkasan
+        final allLogbooks = snapshot.data ?? [];
+        final weeklyLogbooks = allLogbooks.where((log) {
+          final logDate = DateTime(log.date.year, log.date.month, log.date.day);
+          return !logDate.isBefore(weekStart) && logDate.isBefore(weekEnd.add(const Duration(days: 1)));
+        }).toList();
+        
+        final logbookCount = weeklyLogbooks.length;
 
         return Container(
           width: double.infinity,
@@ -239,10 +248,20 @@ class _SummaryCard extends StatelessWidget {
                 value: '$logbookCount entri',
               ),
               const SizedBox(height: 10),
-              const _SummaryRow(
-                icon: Icons.assignment_turned_in_outlined,
-                title: 'Progress laporan',
-                value: '40%',
+              StreamBuilder<double>(
+                stream: _firestoreService.getInternshipProgressStream(
+                  studentId,
+                  'logbooks',
+                ),
+                builder: (context, progressSnapshot) {
+                  final progressValue = progressSnapshot.data ?? 0.0;
+                  final progressPercent = (progressValue * 100).toStringAsFixed(1);
+                  return _SummaryRow(
+                    icon: Icons.assignment_turned_in_outlined,
+                    title: 'Progress laporan',
+                    value: '$progressPercent%',
+                  );
+                },
               ),
             ],
           ),
@@ -308,7 +327,9 @@ class _ActivityCard extends StatelessWidget {
         }
 
         final allLogbooks = snapshot.data ?? [];
-        final recentLogbooks = allLogbooks.take(5).toList();
+        // Urutkan berdasarkan tanggal dibuat (terbaru dulu)
+        final sortedLogbooks = allLogbooks.toList()..sort((a, b) => b.date.compareTo(a.date));
+        final recentLogbooks = sortedLogbooks.take(5).toList();
 
         return Container(
           width: double.infinity,
@@ -481,7 +502,9 @@ class _UserBubble extends StatelessWidget {
 }
 
 class _ProgressCard extends StatefulWidget {
-  const _ProgressCard();
+  final String studentId;
+
+  const _ProgressCard({required this.studentId});
 
   @override
   State<_ProgressCard> createState() => _ProgressCardState();
@@ -491,8 +514,7 @@ class _ProgressCardState extends State<_ProgressCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _pulse;
-
-  static const double _progressValue = 0.4;
+  final _firestoreService = FirestoreService();
 
   @override
   void initState() {
@@ -518,90 +540,100 @@ class _ProgressCardState extends State<_ProgressCard>
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: const LinearGradient(
-          colors: [AppColors.navyDark, AppColors.blueBook],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.30),
-            blurRadius: 18,
-            offset: const Offset(0, 12),
-          ),
-        ],
+    return StreamBuilder<double>(
+      stream: _firestoreService.getInternshipProgressStream(
+        widget.studentId,
+        'logbooks',
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Progres magang',
-                  style: textTheme.labelLarge?.copyWith(
-                    color: AppColors.blueGrey,
-                  ),
+      builder: (context, snapshot) {
+        double progressValue = snapshot.data ?? 0.0;
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: const LinearGradient(
+              colors: [AppColors.navyDark, AppColors.blueBook],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.30),
+                blurRadius: 18,
+                offset: const Offset(0, 12),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Progres magang',
+                      style: textTheme.labelLarge?.copyWith(
+                        color: AppColors.blueGrey,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '${(progressValue * 100).toStringAsFixed(1)}%',
+                      style: textTheme.headlineSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: progressValue),
+                        duration: const Duration(milliseconds: 600),
+                        curve: Curves.easeOutCubic,
+                        builder: (context, value, _) {
+                          return LinearProgressIndicator(
+                            value: value,
+                            minHeight: 6,
+                            color: AppColors.greenArrow,
+                            backgroundColor: Colors.white.withOpacity(0.25),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Lengkapi logbook dan laporan kamu secara bertahap.',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  '40%',
-                  style: textTheme.headlineSmall?.copyWith(
+              ),
+              const SizedBox(width: 16),
+              ScaleTransition(
+                scale: _pulse,
+                child: Container(
+                  width: 54,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.16),
+                  ),
+                  child: const Icon(
+                    Icons.school_rounded,
                     color: Colors.white,
-                    fontWeight: FontWeight.w700,
+                    size: 30,
                   ),
                 ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(999),
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0, end: _progressValue),
-                    duration: const Duration(milliseconds: 600),
-                    curve: Curves.easeOutCubic,
-                    builder: (context, value, _) {
-                      return LinearProgressIndicator(
-                        value: value,
-                        minHeight: 6,
-                        color: AppColors.greenArrow,
-                        backgroundColor: Colors.white.withOpacity(0.25),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Lengkapi logbook dan laporan kamu secara bertahap.',
-                  style: textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withOpacity(0.9),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          ScaleTransition(
-            scale: _pulse,
-            child: Container(
-              width: 54,
-              height: 54,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.16),
               ),
-              child: const Icon(
-                Icons.school_rounded,
-                color: Colors.white,
-                size: 30,
-              ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
