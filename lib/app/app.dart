@@ -12,22 +12,25 @@ class MyApp extends StatelessWidget {
       title: 'E-Bimbingan Magang',
       debugShowCheckedModeBanner: false,
       theme: _buildTheme(),
-      initialRoute: Routes.splash,
+
+      // untuk produksi
+      // initialRoute: Routes.splash,
+
+      // kalau mau tes tampilan dosen:
+      initialRoute: Routes.dosenLogbook,
       routes: Routes.map,
-      // bikin font adaptif untuk semua layar
       builder: (context, child) {
         final media = MediaQuery.of(context);
         final width = media.size.width;
 
-        // lebar acuan 375 (iphone X / rata-rata HP)
         const baseWidth = 375.0;
         double scale = width / baseWidth;
 
-        // batasi supaya tidak terlalu besar/kecil
-        scale = scale.clamp(0.9, 1.15);
+        // batasi supaya tidak terlalu besar atau kecil
+        scale = scale.clamp(0.95, 1.2).toDouble();
 
         return MediaQuery(
-          data: media.copyWith(textScaleFactor: scale),
+          data: media.copyWith(textScaler: TextScaler.linear(scale)),
           child: child ?? const SizedBox.shrink(),
         );
       },
@@ -35,7 +38,6 @@ class MyApp extends StatelessWidget {
   }
 
   ThemeData _buildTheme() {
-    // tema dasar
     final base = ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
@@ -49,37 +51,31 @@ class MyApp extends StatelessWidget {
 
     final t = base.textTheme;
 
-    // atur ulang ukuran dan font untuk teks
     final patchedTextTheme = t.copyWith(
-      // judul besar (jarang dipakai)
       headlineLarge: t.headlineLarge?.copyWith(
         fontFamily: 'StackSansHeadline',
         fontSize: 26,
         fontWeight: FontWeight.w700,
         color: AppColors.white,
       ),
-      // judul sedang (misal di onboarding)
       headlineMedium: t.headlineMedium?.copyWith(
         fontFamily: 'StackSansHeadline',
         fontSize: 24,
         fontWeight: FontWeight.w700,
         color: AppColors.white,
       ),
-      // judul appBar / section besar
       titleLarge: t.titleLarge?.copyWith(
         fontFamily: 'StackSansHeadline',
         fontSize: 20,
         fontWeight: FontWeight.w700,
         color: AppColors.white,
       ),
-      // judul section biasa (Ringkasan minggu ini, dsb.)
       titleMedium: t.titleMedium?.copyWith(
         fontFamily: 'StackSansHeadline',
         fontSize: 18,
         fontWeight: FontWeight.w600,
         color: AppColors.navyDark,
       ),
-      // body umum
       bodyLarge: t.bodyLarge?.copyWith(
         fontFamily: 'StackSansText',
         fontSize: 16,
@@ -119,6 +115,9 @@ class MyApp extends StatelessWidget {
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
+          ),
+          textStyle: patchedTextTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
