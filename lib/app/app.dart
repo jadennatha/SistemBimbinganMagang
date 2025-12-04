@@ -1,39 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'app_colors.dart';
 import 'routes.dart';
+import '../features/auth/data/auth_provider.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'E-Bimbingan Magang',
-      debugShowCheckedModeBanner: false,
-      theme: _buildTheme(),
+    return MultiProvider(
+      providers: [ChangeNotifierProvider(create: (_) => AuthProvider())],
+      child: MaterialApp(
+        title: 'E-Bimbingan Magang',
+        debugShowCheckedModeBanner: false,
+        theme: _buildTheme(),
+        initialRoute: Routes.splash, // Selalu mulai dari splash
+        routes: Routes.map,
+        builder: (context, child) {
+          final media = MediaQuery.of(context);
+          final width = media.size.width;
 
-      // untuk produksi
-      // initialRoute: Routes.splash,
+          const baseWidth = 375.0;
+          double scale = width / baseWidth;
+          scale = scale.clamp(0.9, 1.15);
 
-      // kalau mau tes tampilan dosen:
-      initialRoute: Routes.dosenLogbook,
-      routes: Routes.map,
-      builder: (context, child) {
-        final media = MediaQuery.of(context);
-        final width = media.size.width;
-
-        const baseWidth = 375.0;
-        double scale = width / baseWidth;
-
-        // batasi supaya tidak terlalu besar atau kecil
-        scale = scale.clamp(0.95, 1.2).toDouble();
-
-        return MediaQuery(
-          data: media.copyWith(textScaler: TextScaler.linear(scale)),
-          child: child ?? const SizedBox.shrink(),
-        );
-      },
+          return MediaQuery(
+            data: media.copyWith(textScaler: TextScaler.linear(scale)),
+            child: child ?? const SizedBox.shrink(),
+          );
+        },
+      ),
     );
   }
 
@@ -115,9 +113,6 @@ class MyApp extends StatelessWidget {
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-          ),
-          textStyle: patchedTextTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w600,
           ),
         ),
       ),

@@ -1,9 +1,9 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-import '../../app/app_colors.dart';
-import '../../app/routes.dart';
-import '../auth/presentation/login_screen.dart';
+import '../../../app/app_colors.dart';
+import '../../../app/routes.dart';
+import '../../auth/presentation/login_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});

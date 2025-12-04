@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../../app/app_colors.dart';
-import '../logbook/models/logbook_model.dart';
-import '../logbook/services/logbook_service.dart';
+import '../../../app/app_colors.dart';
+import '../../logbook/data/logbook_model.dart';
+import '../../logbook/data/logbook_service.dart';
 
 class LogbookContent extends StatefulWidget {
   const LogbookContent({super.key});
@@ -72,9 +72,9 @@ class _LogbookContentState extends State<LogbookContent>
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -564,9 +564,9 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
   Future<void> _simpan() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (_tanggal == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tanggal harus dipilih')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Tanggal harus dipilih')));
       return;
     }
 
@@ -593,9 +593,9 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
         setState(() {
           _isSaving = false;
         });

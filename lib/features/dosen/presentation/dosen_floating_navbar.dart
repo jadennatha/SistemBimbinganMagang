@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../app/app_colors.dart';
+import '../../../app/app_colors.dart';
 
-class FloatingNavBar extends StatelessWidget {
-  const FloatingNavBar({
+class DosenFloatingNavbar extends StatelessWidget {
+  const DosenFloatingNavbar({
     super.key,
     required this.currentIndex,
     required this.onChanged,
@@ -13,14 +13,14 @@ class FloatingNavBar extends StatelessWidget {
 
   static const List<_NavItemData> items = [
     _NavItemData(
-      icon: Icons.grid_view_rounded,
-      label: 'Beranda',
+      icon: Icons.dashboard_rounded,
+      label: 'Dashboard',
       accent1: AppColors.blueBook,
       accent2: AppColors.greenArrow,
     ),
     _NavItemData(
-      icon: Icons.menu_book_rounded,
-      label: 'Logbook',
+      icon: Icons.history_rounded,
+      label: 'History',
       accent1: AppColors.navy,
       accent2: AppColors.blueBook,
     ),

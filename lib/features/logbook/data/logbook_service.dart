@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../models/logbook_model.dart';
+import 'logbook_model.dart';
 
 class LogbookService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -12,7 +12,9 @@ class LogbookService {
   // Create logbook entry
   Future<String> createLogbook(LogbookModel logbook) async {
     try {
-      final docRef = await _firestore.collection('logbooks').add(logbook.toFirestore());
+      final docRef = await _firestore
+          .collection('logbooks')
+          .add(logbook.toFirestore());
       return docRef.id;
     } catch (e) {
       throw Exception('Gagal membuat logbook: $e');
@@ -27,8 +29,10 @@ class LogbookService {
         .orderBy('date', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) => LogbookModel.fromFirestore(doc)).toList();
-    });
+          return snapshot.docs
+              .map((doc) => LogbookModel.fromFirestore(doc))
+              .toList();
+        });
   }
 
   // Read single logbook
@@ -47,7 +51,10 @@ class LogbookService {
   // Update logbook entry
   Future<void> updateLogbook(String logbookId, LogbookModel logbook) async {
     try {
-      await _firestore.collection('logbooks').doc(logbookId).update(logbook.toFirestore());
+      await _firestore
+          .collection('logbooks')
+          .doc(logbookId)
+          .update(logbook.toFirestore());
     } catch (e) {
       throw Exception('Gagal mengupdate logbook: $e');
     }
@@ -76,8 +83,10 @@ class LogbookService {
         .orderBy('date', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) => LogbookModel.fromFirestore(doc)).toList();
-    });
+          return snapshot.docs
+              .map((doc) => LogbookModel.fromFirestore(doc))
+              .toList();
+        });
   }
 
   // Get current user's ID

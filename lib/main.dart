@@ -6,6 +6,9 @@ import 'app/app.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Jalur biasa, mulai dari splash lalu ke alur mahasiswa
   runApp(const MyApp());
 }

@@ -14,13 +14,12 @@ class LogbookValidationListScreen extends StatefulWidget {
 
 class _LogbookValidationListScreenState
     extends State<LogbookValidationListScreen> {
-  LogbookStatus? _filter; // null = semua
+  LogbookStatus? _filter;
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context).textTheme;
-
-    final List<LogbookValidationItem> items = _filteredItems();
+    final textTheme = Theme.of(context).textTheme;
+    final items = _filteredItems();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -30,7 +29,6 @@ class _LogbookValidationListScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // sedikit jarak atas saja, tanpa judul/subjudul
               const SizedBox(height: 4),
 
               _SummaryCard(summary: demoLogbookSummary),
@@ -53,7 +51,7 @@ class _LogbookValidationListScreenState
                     ? Center(
                         child: Text(
                           'Tidak ada logbook untuk filter ini.',
-                          style: t.bodyMedium?.copyWith(
+                          style: textTheme.bodyMedium?.copyWith(
                             color: Colors.white.withOpacity(0.7),
                           ),
                         ),
@@ -99,7 +97,7 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Container(
       width: double.infinity,
@@ -144,7 +142,7 @@ class _SummaryCard extends StatelessWidget {
                   children: [
                     Text(
                       'Logbook menunggu cek',
-                      style: t.bodyMedium?.copyWith(
+                      style: textTheme.bodyMedium?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
                       ),
@@ -152,7 +150,7 @@ class _SummaryCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       'Tinjau entri dan beri status Disetujui atau Revisi.',
-                      style: t.bodySmall?.copyWith(
+                      style: textTheme.bodySmall?.copyWith(
                         color: Colors.white.withOpacity(0.9),
                       ),
                     ),
@@ -196,7 +194,7 @@ class _SummaryLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
@@ -211,7 +209,7 @@ class _SummaryLine extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: t.bodySmall?.copyWith(
+              style: textTheme.bodySmall?.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w500,
               ),
@@ -219,7 +217,7 @@ class _SummaryLine extends StatelessWidget {
           ),
           Text(
             '$count entri',
-            style: t.bodySmall?.copyWith(
+            style: textTheme.bodySmall?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.w700,
             ),
@@ -238,7 +236,7 @@ class _StatusFilterRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Row(
       children: [
@@ -246,28 +244,28 @@ class _StatusFilterRow extends StatelessWidget {
           label: 'Menunggu',
           selected: current == LogbookStatus.waiting,
           onTap: () => onChanged(LogbookStatus.waiting),
-          textTheme: t,
+          textTheme: textTheme,
         ),
         const SizedBox(width: 8),
         _FilterChip(
           label: 'Revisi',
           selected: current == LogbookStatus.revision,
           onTap: () => onChanged(LogbookStatus.revision),
-          textTheme: t,
+          textTheme: textTheme,
         ),
         const SizedBox(width: 8),
         _FilterChip(
           label: 'Disetujui',
           selected: current == LogbookStatus.approved,
           onTap: () => onChanged(LogbookStatus.approved),
-          textTheme: t,
+          textTheme: textTheme,
         ),
         const SizedBox(width: 8),
         _FilterChip(
           label: 'Semua',
           selected: current == null,
           onTap: () => onChanged(null),
-          textTheme: t,
+          textTheme: textTheme,
         ),
       ],
     );
@@ -320,7 +318,7 @@ class _LogbookTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
 
     Color statusColor;
     switch (item.status) {
@@ -369,7 +367,7 @@ class _LogbookTile extends StatelessWidget {
                       item.studentName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: t.bodyMedium?.copyWith(
+                      style: textTheme.bodyMedium?.copyWith(
                         color: AppColors.navyDark,
                         fontWeight: FontWeight.w700,
                       ),
@@ -379,14 +377,16 @@ class _LogbookTile extends StatelessWidget {
                       item.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: t.bodySmall?.copyWith(
+                      style: textTheme.bodySmall?.copyWith(
                         color: AppColors.navy.withOpacity(0.9),
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       item.dateLabel,
-                      style: t.bodySmall?.copyWith(color: AppColors.blueGrey),
+                      style: textTheme.bodySmall?.copyWith(
+                        color: AppColors.blueGrey,
+                      ),
                     ),
                   ],
                 ),
@@ -403,7 +403,7 @@ class _LogbookTile extends StatelessWidget {
                 ),
                 child: Text(
                   item.statusLabel,
-                  style: t.labelSmall?.copyWith(
+                  style: textTheme.labelSmall?.copyWith(
                     color: statusColor,
                     fontWeight: FontWeight.w600,
                   ),

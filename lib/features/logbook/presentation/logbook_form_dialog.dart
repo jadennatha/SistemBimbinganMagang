@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/logbook_model.dart';
+import '../data/logbook_model.dart';
 
 class LogbookFormDialog extends StatefulWidget {
   final LogbookModel? initialLogbook;

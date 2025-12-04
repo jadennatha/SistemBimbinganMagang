@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../../app/app_colors.dart';
-import '../../app/routes.dart';
+import '../../../app/app_colors.dart';
+import '../../../app/routes.dart';
 
 class ProfileContent extends StatelessWidget {
   const ProfileContent({super.key});

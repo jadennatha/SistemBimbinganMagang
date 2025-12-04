@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
 
-import '../features/splash/splash_screen.dart';
-import '../features/onboarding/onboarding_screen.dart';
+import '../features/splash/presentation/splash_screen.dart';
+import '../features/onboarding/presentation/onboarding_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
-import '../features/home/home_screen.dart';
-import '../features/dosen/presentation/logbook_validation_list_screen.dart';
+import '../features/home/presentation/home_screen.dart';
+import '../features/dosen/presentation/dosen_home_shell.dart';
 
 class Routes {
-  Routes._();
+  static const splash = '/';
+  static const onboarding = '/onboarding';
+  static const login = '/login';
+  static const home = '/home';
 
-  // nama route
-  static const String splash = '/';
-  static const String onboarding = '/onboarding';
-  static const String login = '/login';
-  static const String home = '/home';
-  static const String dosenLogbook = '/dosen/logbook';
+  // route untuk dosen
+  static const dosenHome = '/dosen';
 
-  // peta route untuk MaterialApp.routes
   static Map<String, WidgetBuilder> get map => {
     splash: (context) => const SplashScreen(),
     onboarding: (context) => const OnboardingScreen(),
     login: (context) => const LoginScreen(),
     home: (context) => const HomeScreen(),
-    dosenLogbook: (context) => const LogbookValidationListScreen(),
+
+    // ini yang dipakai untuk tampilan dosen
+    dosenHome: (context) => const DosenHomeShell(),
   };
 }
