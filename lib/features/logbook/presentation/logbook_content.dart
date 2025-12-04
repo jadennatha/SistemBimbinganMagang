@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'models/logbook_model.dart';
-import 'services/logbook_service.dart';
-import 'widgets/logbook_form_dialog.dart';
+import '../data/logbook_model.dart';
+import '../data/logbook_service.dart';
+import 'logbook_form_dialog.dart';
 
 class LogbookContent extends StatefulWidget {
   const LogbookContent({super.key});
@@ -56,9 +56,9 @@ class _LogbookContentState extends State<LogbookContent> {
         _isLoading = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -92,9 +92,9 @@ class _LogbookContentState extends State<LogbookContent> {
             }
           } catch (e) {
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Error: $e')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text('Error: $e')));
             }
           }
         },
@@ -126,15 +126,13 @@ class _LogbookContentState extends State<LogbookContent> {
               } catch (e) {
                 if (mounted) {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: $e')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Error: $e')));
                 }
               }
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Hapus'),
           ),
         ],
@@ -164,68 +162,69 @@ class _LogbookContentState extends State<LogbookContent> {
             ),
           ),
           SliverList(
-            delegate: SliverChildListDelegate(
-              [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: () => _showLogbookForm(),
-                        icon: const Icon(Icons.add),
-                        label: const Text('Catat Hari Ini'),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                        ),
+            delegate: SliverChildListDelegate([
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () => _showLogbookForm(),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Catat Hari Ini'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
                       ),
-                      const SizedBox(height: 20),
-                      StreamBuilder<List<LogbookModel>>(
-                        stream: _logbookService.getStudentLogbooks(_studentId),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const Center(child: CircularProgressIndicator());
-                          }
-
-                          if (snapshot.hasError) {
-                            return Center(
-                              child: Text('Error: ${snapshot.error}'),
-                            );
-                          }
-
-                          final logbooks = snapshot.data ?? [];
-
-                          if (logbooks.isEmpty) {
-                            return const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(32),
-                                child: Text(
-                                  'Belum ada logbook. Mulai dengan klik "Catat Hari Ini"',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(color: Colors.grey),
-                                ),
-                              ),
-                            );
-                          }
-
-                          return ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: logbooks.length,
-                            itemBuilder: (context, index) {
-                              final logbook = logbooks[index];
-                              return _buildLogbookCard(logbook);
-                            },
+                    ),
+                    const SizedBox(height: 20),
+                    StreamBuilder<List<LogbookModel>>(
+                      stream: _logbookService.getStudentLogbooks(_studentId),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
                           );
-                        },
-                      ),
-                    ],
-                  ),
+                        }
+
+                        if (snapshot.hasError) {
+                          return Center(
+                            child: Text('Error: ${snapshot.error}'),
+                          );
+                        }
+
+                        final logbooks = snapshot.data ?? [];
+
+                        if (logbooks.isEmpty) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(32),
+                              child: Text(
+                                'Belum ada logbook. Mulai dengan klik "Catat Hari Ini"',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ),
+                          );
+                        }
+
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: logbooks.length,
+                          itemBuilder: (context, index) {
+                            final logbook = logbooks[index];
+                            return _buildLogbookCard(logbook);
+                          },
+                        );
+                      },
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ]),
           ),
         ],
       ),
@@ -268,10 +267,7 @@ class _LogbookContentState extends State<LogbookContent> {
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              logbook.activity,
-              style: const TextStyle(fontSize: 16),
-            ),
+            Text(logbook.activity, style: const TextStyle(fontSize: 16)),
             if (logbook.komentar.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(

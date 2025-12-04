@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../app/app_colors.dart';
+import '../../../app/app_colors.dart';
 import 'dashboard_content.dart';
 import 'logbook_content.dart';
 import 'profile_content.dart';

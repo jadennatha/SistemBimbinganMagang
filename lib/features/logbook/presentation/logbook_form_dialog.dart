@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/logbook_model.dart';
+import '../data/logbook_model.dart';
 
 class LogbookFormDialog extends StatefulWidget {
   final LogbookModel? initialLogbook;
@@ -9,13 +9,13 @@ class LogbookFormDialog extends StatefulWidget {
   final Function(LogbookModel) onSave;
 
   const LogbookFormDialog({
-    Key? key,
+    super.key,
     this.initialLogbook,
     required this.studentId,
     required this.dosenId,
     required this.mentorId,
     required this.onSave,
-  }) : super(key: key);
+  });
 
   @override
   State<LogbookFormDialog> createState() => _LogbookFormDialogState();
@@ -30,9 +30,13 @@ class _LogbookFormDialogState extends State<LogbookFormDialog> {
   void initState() {
     super.initState();
     if (widget.initialLogbook != null) {
-      _activityController = TextEditingController(text: widget.initialLogbook!.activity);
+      _activityController = TextEditingController(
+        text: widget.initialLogbook!.activity,
+      );
       _selectedDate = widget.initialLogbook!.date;
-      _judulController = TextEditingController(text: widget.initialLogbook!.judulKegiatan);
+      _judulController = TextEditingController(
+        text: widget.initialLogbook!.judulKegiatan,
+      );
     } else {
       _activityController = TextEditingController();
       _selectedDate = DateTime.now();
@@ -64,7 +68,9 @@ class _LogbookFormDialogState extends State<LogbookFormDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.initialLogbook == null ? 'Catat Hari Ini' : 'Edit Logbook'),
+      title: Text(
+        widget.initialLogbook == null ? 'Catat Hari Ini' : 'Edit Logbook',
+      ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -73,7 +79,10 @@ class _LogbookFormDialogState extends State<LogbookFormDialog> {
             GestureDetector(
               onTap: () => _selectDate(context),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey),
                   borderRadius: BorderRadius.circular(8),

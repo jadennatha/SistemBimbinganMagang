@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../../app/app_colors.dart';
+import '../../../app/app_colors.dart';
 import '../../services/firestore_service.dart';
 import '../logbook/models/logbook_model.dart';
 import '../logbook/services/logbook_service.dart';

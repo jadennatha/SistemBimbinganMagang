@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 
-import '../../app/app_colors.dart';
-import '../../app/routes.dart';
-import '../onboarding/onboarding_screen.dart';
-import '../home/home_screen.dart';
+import '../../../app/app_colors.dart';
+import '../../../app/routes.dart';
+import '../../auth/data/auth_provider.dart';
+import '../../onboarding/presentation/onboarding_screen.dart';
+import '../../home/presentation/home_screen.dart';
+import '../../dosen/presentation/dosen_home_shell.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -56,19 +58,28 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _goNext() async {
-    final user = FirebaseAuth.instance.currentUser;
+    final authProvider = context.read<AuthProvider>();
 
     if (!mounted) return;
 
     final Widget targetPage;
     final String targetName;
 
-    if (user == null) {
-      targetPage = const OnboardingScreen(); // kalau belum login
+    if (!authProvider.isAuthenticated) {
+      // Belum login → ke onboarding
+      targetPage = const OnboardingScreen();
       targetName = Routes.onboarding;
     } else {
-      targetPage = const HomeScreen(); // di sini berisi dashboard_content
-      targetName = Routes.home;
+      // Sudah login → fetch role dulu, lalu arahkan sesuai role
+      await authProvider.fetchUserRole();
+
+      if (authProvider.isDosen) {
+        targetPage = const DosenHomeShell();
+        targetName = Routes.dosenHome;
+      } else {
+        targetPage = const HomeScreen();
+        targetName = Routes.home;
+      }
     }
 
     Navigator.of(context).pushReplacement(

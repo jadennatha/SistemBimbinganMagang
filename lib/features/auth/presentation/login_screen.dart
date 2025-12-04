@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../utils/validators.dart';
-import '../data/auth_repository.dart';
+import '../data/auth_provider.dart';
 import '../../../app/routes.dart';
 import '../../../app/app_colors.dart';
 
@@ -17,13 +18,11 @@ class _LoginScreenState extends State<LoginScreen>
   final _formKey = GlobalKey<FormState>();
   final _email = TextEditingController();
   final _password = TextEditingController();
-  final _repo = AuthRepository();
 
   final _emailNode = FocusNode();
   final _passwordNode = FocusNode();
 
   bool _obscure = true;
-  bool _loading = false;
 
   late final AnimationController _ac;
   late final Animation<double> _fade;
@@ -133,35 +132,26 @@ class _LoginScreenState extends State<LoginScreen>
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    setState(() => _loading = true);
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.signIn(
+      email: _email.text.trim(),
+      password: _password.text,
+    );
 
-    try {
-      await _repo.signIn(email: _email.text.trim(), password: _password.text);
+    if (!mounted) return;
 
-      if (!mounted) return;
-      setState(() => _loading = false);
-
-      // berhasil login, langsung ke home
-      Navigator.pushReplacementNamed(context, Routes.home);
-    } on Exception catch (e) {
-      if (!mounted) return;
-      setState(() => _loading = false);
-
-      final msg = _friendlyError(e.toString());
-
-      // gagal login, hanya tampilkan dialog tanpa animasi bergetar
-      await _showResultDialog(success: false, message: msg);
+    if (success) {
+      // Berhasil login, arahkan sesuai role
+      if (authProvider.isDosen) {
+        Navigator.pushReplacementNamed(context, Routes.dosenHome);
+      } else {
+        Navigator.pushReplacementNamed(context, Routes.home);
+      }
+    } else if (authProvider.error != null) {
+      // gagal login, tampilkan dialog error
+      await _showResultDialog(success: false, message: authProvider.error!);
+      authProvider.clearError();
     }
-  }
-
-  String _friendlyError(String m) {
-    if (m.contains('invalid-email')) return 'Email tidak valid.';
-    if (m.contains('user-not-found')) return 'Akun tidak ditemukan.';
-    if (m.contains('wrong-password')) return 'Password salah.';
-    if (m.contains('too-many-requests')) {
-      return 'Terlalu banyak percobaan. Coba lagi nanti.';
-    }
-    return 'Periksa data kamu lagi ya..';
   }
 
   OutlineInputBorder _outline(Color c) {
@@ -326,45 +316,53 @@ class _LoginScreenState extends State<LoginScreen>
                                 const SizedBox(height: 20),
 
                                 // tombol masuk
-                                SizedBox(
-                                  height: 50,
-                                  child: ElevatedButton(
-                                    onPressed: _loading ? null : _submit,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.blueBook,
-                                      foregroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                    ),
-                                    child: AnimatedSwitcher(
-                                      duration: const Duration(
-                                        milliseconds: 200,
-                                      ),
-                                      transitionBuilder: (child, anim) =>
-                                          FadeTransition(
-                                            opacity: anim,
-                                            child: child,
-                                          ),
-                                      child: _loading
-                                          ? const SizedBox(
-                                              key: ValueKey('loading'),
-                                              height: 20,
-                                              width: 20,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                valueColor:
-                                                    AlwaysStoppedAnimation<
-                                                      Color
-                                                    >(Colors.white),
-                                              ),
-                                            )
-                                          : const Text(
-                                              'Masuk',
-                                              key: ValueKey('text'),
+                                Consumer<AuthProvider>(
+                                  builder: (context, auth, _) {
+                                    return SizedBox(
+                                      height: 50,
+                                      child: ElevatedButton(
+                                        onPressed: auth.isLoading
+                                            ? null
+                                            : _submit,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.blueBook,
+                                          foregroundColor: Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
                                             ),
-                                    ),
-                                  ),
+                                          ),
+                                        ),
+                                        child: AnimatedSwitcher(
+                                          duration: const Duration(
+                                            milliseconds: 200,
+                                          ),
+                                          transitionBuilder: (child, anim) =>
+                                              FadeTransition(
+                                                opacity: anim,
+                                                child: child,
+                                              ),
+                                          child: auth.isLoading
+                                              ? const SizedBox(
+                                                  key: ValueKey('loading'),
+                                                  height: 20,
+                                                  width: 20,
+                                                  child: CircularProgressIndicator(
+                                                    strokeWidth: 2,
+                                                    valueColor:
+                                                        AlwaysStoppedAnimation<
+                                                          Color
+                                                        >(Colors.white),
+                                                  ),
+                                                )
+                                              : const Text(
+                                                  'Masuk',
+                                                  key: ValueKey('text'),
+                                                ),
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ],
                             ),
