@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../app/app_colors.dart';
 import '../../../app/routes.dart';
+import '../../../models/user_model.dart';
+import '../../../services/firestore_service.dart';
 
 class ProfileContent extends StatelessWidget {
   const ProfileContent({super.key});
