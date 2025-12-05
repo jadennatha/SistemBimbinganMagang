@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+import 'package:provider/provider.dart';
+import '../../auth/data/auth_provider.dart';
 
 import '../../../app/app_colors.dart';
 
@@ -18,7 +21,7 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
   late final AnimationController _pulseController;
   late final Animation<double> _pulseAnimation;
 
-  String _nama = 'Dosen';
+  String _nama = 'User';
   String _nip = '';
   bool _isLoading = true;
 
@@ -57,7 +60,7 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
         if (doc.exists && mounted) {
           final data = doc.data();
           setState(() {
-            _nama = data?['nama'] ?? 'Dosen';
+            _nama = data?['nama'] ?? 'User';
             _nip = data?['nip'] ?? '';
             _isLoading = false;
           });
@@ -89,6 +92,9 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final authProvider = context.watch<AuthProvider>();
+    final isMentor = authProvider.isMentor;
+    final roleLabel = isMentor ? 'Mentor' : 'Dosen Pembimbing';
 
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -100,6 +106,7 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
         top: true,
         bottom: false,
         child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(20, 32, 20, 100),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,7 +153,7 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              'Dosen Pembimbing',
+                              roleLabel,
                               style: textTheme.labelSmall?.copyWith(
                                 color: AppColors.greenArrow,
                                 fontWeight: FontWeight.w600,

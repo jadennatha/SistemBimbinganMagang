@@ -73,7 +73,7 @@ class _SplashScreenState extends State<SplashScreen>
       // Sudah login → fetch role dulu, lalu arahkan sesuai role
       await authProvider.fetchUserRole();
 
-      if (authProvider.isDosen) {
+      if (authProvider.isDosenOrMentor) {
         targetPage = const DosenHomeShell();
         targetName = Routes.dosenHome;
       } else {

@@ -25,6 +25,9 @@ enum UserRole {
 
   /// Dosen pembimbing
   dosen,
+
+  /// Mentor (shares UI with dosen)
+  mentor,
 }
 
 /// Provider untuk mengelola state autentikasi secara global.
@@ -67,11 +70,17 @@ class AuthProvider extends ChangeNotifier {
   /// Shortcut untuk cek apakah user sudah login
   bool get isAuthenticated => _status == AuthStatus.authenticated;
 
-  /// Role user saat ini (mahasiswa atau dosen)
+  /// Role user saat ini
   UserRole get userRole => _userRole;
 
   /// Shortcut untuk cek apakah user adalah dosen
   bool get isDosen => _userRole == UserRole.dosen;
+
+  /// Shortcut untuk cek apakah user adalah mentor
+  bool get isMentor => _userRole == UserRole.mentor;
+
+  /// Shortcut untuk cek apakah user adalah dosen atau mentor
+  bool get isDosenOrMentor => isDosen || isMentor;
 
   // ─────────────────────────────────────────────────────────────────
   // Private Methods
@@ -82,12 +91,10 @@ class AuthProvider extends ChangeNotifier {
     _status = user != null
         ? AuthStatus.authenticated
         : AuthStatus.unauthenticated;
-
     // Reset role when user changes
     if (user == null) {
       _userRole = UserRole.unknown;
     }
-
     notifyListeners();
   }
 
@@ -113,20 +120,19 @@ class AuthProvider extends ChangeNotifier {
       _userRole = UserRole.unknown;
       return _userRole;
     }
-
     try {
       final doc = await _firestore.collection('users').doc(_user!.uid).get();
-
       if (doc.exists) {
         final data = doc.data();
         final roleStr = data?['role'] as String? ?? '';
-
         if (roleStr == 'dosen') {
           _userRole = UserRole.dosen;
+        } else if (roleStr == 'mentor') {
+          _userRole = UserRole.mentor;
         } else if (roleStr == 'mahasiswa') {
           _userRole = UserRole.mahasiswa;
         } else {
-          // Fallback: cek apakah punya field 'kelas' (berarti mahasiswa)
+          // Fallback based on presence of 'kelas'
           if (data?['kelas'] != null) {
             _userRole = UserRole.mahasiswa;
           } else {
@@ -134,33 +140,26 @@ class AuthProvider extends ChangeNotifier {
           }
         }
       } else {
-        _userRole = UserRole.mahasiswa; // Default ke mahasiswa
+        _userRole = UserRole.mahasiswa; // Default
       }
-
       notifyListeners();
       return _userRole;
     } catch (e) {
-      _userRole = UserRole.mahasiswa; // Default ke mahasiswa jika error
+      _userRole = UserRole.mahasiswa;
       notifyListeners();
       return _userRole;
     }
   }
 
   /// Login dengan email dan password.
-  ///
   /// Returns `true` jika berhasil, `false` jika gagal.
-  /// Jika gagal, error message bisa diakses via getter `error`.
   Future<bool> signIn({required String email, required String password}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
     try {
       await _repo.signIn(email: email, password: password);
-
-      // Fetch role setelah login berhasil
       await fetchUserRole();
-
       _isLoading = false;
       notifyListeners();
       return true;
@@ -176,10 +175,8 @@ class AuthProvider extends ChangeNotifier {
   Future<void> signOut() async {
     _isLoading = true;
     notifyListeners();
-
     await _repo.signOut();
     _userRole = UserRole.unknown;
-
     _isLoading = false;
     notifyListeners();
   }

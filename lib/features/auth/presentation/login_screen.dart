@@ -142,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen>
 
     if (success) {
       // Berhasil login, arahkan sesuai role
-      if (authProvider.isDosen) {
+      if (authProvider.isDosenOrMentor) {
         Navigator.pushReplacementNamed(context, Routes.dosenHome);
       } else {
         Navigator.pushReplacementNamed(context, Routes.home);
