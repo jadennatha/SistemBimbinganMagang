@@ -191,7 +191,7 @@ class LogbookValidationDetailScreen extends StatelessWidget {
                     // hanya tampil kalau belum disetujui
                     if (!item.isApproved) ...[
                       Text(
-                        'Tindakan dosen',
+                        'Tindakan',
                         style: t.titleMedium?.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,

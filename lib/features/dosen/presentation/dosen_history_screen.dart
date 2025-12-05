@@ -141,6 +141,7 @@ class _DosenHistoryScreenState extends State<DosenHistoryScreen>
                         ),
                       )
                     : ListView.separated(
+                        physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.only(bottom: 100),
                         itemCount: items.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 12),

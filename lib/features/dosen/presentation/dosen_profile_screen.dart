@@ -88,6 +88,10 @@ class _DosenProfileScreenState extends State<DosenProfileScreen>
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final authProvider = context.watch<AuthProvider>();
+    final isMentor = authProvider.isMentor;
+    final roleLabel = isMentor ? 'Mentor' : 'Dosen Pembimbing';
+    final idLabel = isMentor ? 'ID Mentor' : 'NIP';
 
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -98,16 +102,17 @@ class _DosenProfileScreenState extends State<DosenProfileScreen>
       child: SafeArea(
         bottom: false,
         child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
           child: Column(
             children: [
               // Profile Header Card
-              _buildProfileCard(textTheme),
+              _buildProfileCard(textTheme, roleLabel),
 
               const SizedBox(height: 24),
 
               // Info Section
-              _buildInfoSection(textTheme),
+              _buildInfoSection(textTheme, idLabel),
 
               const SizedBox(height: 24),
 
@@ -123,8 +128,8 @@ class _DosenProfileScreenState extends State<DosenProfileScreen>
     );
   }
 
-  Widget _buildProfileCard(TextTheme textTheme) {
-    final initial = _nama.isNotEmpty ? _nama[0].toUpperCase() : 'D';
+  Widget _buildProfileCard(TextTheme textTheme, String roleLabel) {
+    final initial = _nama.isNotEmpty ? _nama[0].toUpperCase() : 'U';
 
     return Container(
       width: double.infinity,
@@ -193,7 +198,7 @@ class _DosenProfileScreenState extends State<DosenProfileScreen>
                 const Icon(Icons.verified, color: Colors.white, size: 16),
                 const SizedBox(width: 6),
                 Text(
-                  'Dosen Pembimbing',
+                  roleLabel,
                   style: textTheme.labelMedium?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -207,7 +212,7 @@ class _DosenProfileScreenState extends State<DosenProfileScreen>
     );
   }
 
-  Widget _buildInfoSection(TextTheme textTheme) {
+  Widget _buildInfoSection(TextTheme textTheme, String idLabel) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -235,7 +240,7 @@ class _DosenProfileScreenState extends State<DosenProfileScreen>
           const SizedBox(height: 16),
           _buildInfoRow(
             Icons.badge_rounded,
-            'NIP',
+            idLabel,
             _nip.isNotEmpty ? _nip : '-',
           ),
           const SizedBox(height: 12),
