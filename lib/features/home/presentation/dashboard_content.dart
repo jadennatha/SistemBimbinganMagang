@@ -37,9 +37,9 @@ class _DashboardContentState extends State<DashboardContent> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -138,7 +138,10 @@ class _DashboardContentState extends State<DashboardContent> {
 
             // CARD RINGKASAN (PUTIH)
             if (_isUserInitialized)
-              _SummaryCard(logbookService: _logbookService, studentId: _studentId)
+              _SummaryCard(
+                logbookService: _logbookService,
+                studentId: _studentId,
+              )
             else
               Container(
                 width: double.infinity,
@@ -161,7 +164,11 @@ class _DashboardContentState extends State<DashboardContent> {
 
             // CARD AKTIVITAS TERBARU (PUTIH)
             if (_isUserInitialized)
-              _ActivityCard(logbookService: _logbookService, studentId: _studentId, onLogbookTap: _showLogbookDetail)
+              _ActivityCard(
+                logbookService: _logbookService,
+                studentId: _studentId,
+                onLogbookTap: _showLogbookDetail,
+              )
             else
               Container(
                 width: double.infinity,
@@ -191,10 +198,7 @@ class _SummaryCard extends StatelessWidget {
   final LogbookService logbookService;
   final String studentId;
 
-  const _SummaryCard({
-    required this.logbookService,
-    required this.studentId,
-  });
+  const _SummaryCard({required this.logbookService, required this.studentId});
 
   @override
   Widget build(BuildContext context) {
@@ -206,16 +210,11 @@ class _SummaryCard extends StatelessWidget {
     final _firestoreService = FirestoreService();
 
     return StreamBuilder<List<LogbookModel>>(
-      stream: logbookService.getStudentLogbooks(studentId),
+      stream: logbookService.getStudentLogbooksVerified(studentId),
       builder: (context, snapshot) {
-        // Hitung logbook minggu ini untuk ringkasan
         final allLogbooks = snapshot.data ?? [];
-        final weeklyLogbooks = allLogbooks.where((log) {
-          final logDate = DateTime(log.date.year, log.date.month, log.date.day);
-          return !logDate.isBefore(weekStart) && logDate.isBefore(weekEnd.add(const Duration(days: 1)));
-        }).toList();
-        
-        final logbookCount = weeklyLogbooks.length;
+
+        final logbookCount = allLogbooks.length;
 
         return Container(
           width: double.infinity,
@@ -244,8 +243,20 @@ class _SummaryCard extends StatelessWidget {
               const SizedBox(height: 12),
               _SummaryRow(
                 icon: Icons.edit_note,
-                title: 'Logbook tersimpan',
+                title: 'Logbook Terverifikasi',
                 value: '$logbookCount entri',
+              ),
+              const SizedBox(height: 10),
+              StreamBuilder<String>(
+                stream: _firestoreService.getUserTotalInternday(studentId),
+                builder: (context, snapshot) {
+                  final totalHari = snapshot.data;
+                  return _SummaryRow(
+                    icon: Icons.assignment_add,
+                    title: 'Logbook Yang Harus Dibuat',
+                    value: totalHari.toString(),
+                  );
+                },
               ),
               const SizedBox(height: 10),
               StreamBuilder<double>(
@@ -255,7 +266,9 @@ class _SummaryCard extends StatelessWidget {
                 ),
                 builder: (context, progressSnapshot) {
                   final progressValue = progressSnapshot.data ?? 0.0;
-                  final progressPercent = (progressValue * 100).toStringAsFixed(1);
+                  final progressPercent = (progressValue * 100).toStringAsFixed(
+                    1,
+                  );
                   return _SummaryRow(
                     icon: Icons.assignment_turned_in_outlined,
                     title: 'Progress laporan',
@@ -328,7 +341,8 @@ class _ActivityCard extends StatelessWidget {
 
         final allLogbooks = snapshot.data ?? [];
         // Urutkan berdasarkan tanggal dibuat (terbaru dulu)
-        final sortedLogbooks = allLogbooks.toList()..sort((a, b) => b.date.compareTo(a.date));
+        final sortedLogbooks = allLogbooks.toList()
+          ..sort((a, b) => b.date.compareTo(a.date));
         final recentLogbooks = sortedLogbooks.take(5).toList();
 
         return Container(
@@ -369,30 +383,31 @@ class _ActivityCard extends StatelessWidget {
                   ),
                 )
               else
-                ...List.generate(
-                  recentLogbooks.length,
-                  (index) {
-                    final logbook = recentLogbooks[index];
-                    return GestureDetector(
-                      onTap: () => onLogbookTap(logbook),
-                      child: Padding(
-                        padding: EdgeInsets.only(bottom: index < recentLogbooks.length - 1 ? 12 : 0),
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.8),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.navy.withOpacity(0.1)),
-                          ),
-                          child: _ActivityItemFromLogbook(
-                            logbook: logbook,
-                            timeLabel: _getTimeLabel(logbook.date),
+                ...List.generate(recentLogbooks.length, (index) {
+                  final logbook = recentLogbooks[index];
+                  return GestureDetector(
+                    onTap: () => onLogbookTap(logbook),
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        bottom: index < recentLogbooks.length - 1 ? 12 : 0,
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.navy.withOpacity(0.1),
                           ),
                         ),
+                        child: _ActivityItemFromLogbook(
+                          logbook: logbook,
+                          timeLabel: _getTimeLabel(logbook.createdAt),
+                        ),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                }),
             ],
           ),
         );
@@ -425,7 +440,11 @@ class _ActivityItemFromLogbook extends StatelessWidget {
             shape: BoxShape.circle,
             color: AppColors.blueBook.withOpacity(0.06),
           ),
-          child: const Icon(Icons.note_alt_outlined, size: 18, color: AppColors.blueBook),
+          child: const Icon(
+            Icons.note_alt_outlined,
+            size: 18,
+            color: AppColors.blueBook,
+          ),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -465,7 +484,6 @@ class _ActivityItemFromLogbook extends StatelessWidget {
     );
   }
 }
-
 
 class _UserBubble extends StatelessWidget {
   const _UserBubble({required this.name});
@@ -688,9 +706,7 @@ class _SummaryRow extends StatelessWidget {
 class _LogbookDetailDialog extends StatelessWidget {
   final LogbookModel logbook;
 
-  const _LogbookDetailDialog({
-    required this.logbook,
-  });
+  const _LogbookDetailDialog({required this.logbook});
 
   Color _getStatusColor(String status) {
     if (status == 'approved') return AppColors.greenArrow;
@@ -733,7 +749,8 @@ class _LogbookDetailDialog extends StatelessWidget {
                   const SizedBox(height: 16),
                   _DetailItem(
                     label: 'Tanggal',
-                    value: '${logbook.date.day}/${logbook.date.month}/${logbook.date.year}',
+                    value:
+                        '${logbook.date.day}/${logbook.date.month}/${logbook.date.year}',
                   ),
                   const SizedBox(height: 16),
                   _DetailItem(
@@ -793,7 +810,6 @@ class _LogbookDetailDialog extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  
                 ),
                 child: Text(
                   'Tutup',
@@ -848,9 +864,7 @@ class _DetailItem extends StatelessWidget {
           ),
           child: Text(
             value,
-            style: t.bodyMedium?.copyWith(
-              color: AppColors.navyDark,
-            ),
+            style: t.bodyMedium?.copyWith(color: AppColors.navyDark),
             maxLines: isMultiline ? null : 1,
             overflow: isMultiline ? null : TextOverflow.ellipsis,
           ),

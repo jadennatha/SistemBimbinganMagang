@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../app/app_colors.dart';
 import '../../logbook/data/logbook_model.dart';
 import '../../logbook/data/logbook_service.dart';
-import '../../../models/user_model.dart';
 
 class LogbookContent extends StatefulWidget {
   const LogbookContent({super.key});
@@ -185,11 +184,19 @@ class _LogbookContentState extends State<LogbookContent>
     switch (_filterType) {
       case 'hari_ini':
         return _logbookService
-            .getLogbooksByDateRange(_studentId, today, today.add(const Duration(days: 1)))
+            .getLogbooksByDateRange(
+              _studentId,
+              today,
+              today.add(const Duration(days: 1)),
+            )
             .map((logbooks) => logbooks.toList());
       case 'minggu_ini':
         return _logbookService
-            .getLogbooksByDateRange(_studentId, weekStart, weekEnd.add(const Duration(days: 1)))
+            .getLogbooksByDateRange(
+              _studentId,
+              weekStart,
+              weekEnd.add(const Duration(days: 1)),
+            )
             .map((logbooks) => logbooks.toList());
       case 'semua':
       default:
@@ -304,9 +311,7 @@ class _LogbookContentState extends State<LogbookContent>
                       }
 
                       if (snapshot.hasError) {
-                        return Center(
-                          child: Text('Error: ${snapshot.error}'),
-                        );
+                        return Center(child: Text('Error: ${snapshot.error}'));
                       }
 
                       final logbooks = snapshot.data ?? [];
@@ -497,10 +502,7 @@ class _LogItemClickable extends StatelessWidget {
   final LogbookModel logbook;
   final VoidCallback onTap;
 
-  const _LogItemClickable({
-    required this.logbook,
-    required this.onTap,
-  });
+  const _LogItemClickable({required this.logbook, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -553,10 +555,7 @@ class _LogItemClickable extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right,
-              color: AppColors.navy.withOpacity(0.5),
-            ),
+            Icon(Icons.chevron_right, color: AppColors.navy.withOpacity(0.5)),
           ],
         ),
       ),
@@ -567,9 +566,7 @@ class _LogItemClickable extends StatelessWidget {
 class _LogbookDetailDialog extends StatelessWidget {
   final LogbookModel logbook;
 
-  const _LogbookDetailDialog({
-    required this.logbook,
-  });
+  const _LogbookDetailDialog({required this.logbook});
 
   Color _getStatusColor(String status) {
     if (status == 'approved') return AppColors.greenArrow;
@@ -605,57 +602,58 @@ class _LogbookDetailDialog extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-            _DetailItem(
-              label: 'Judul Kegiatan',
-              value: logbook.judulKegiatan,
-            ),
-            const SizedBox(height: 16),
-            _DetailItem(
-              label: 'Tanggal',
-              value: '${logbook.date.day}/${logbook.date.month}/${logbook.date.year}',
-            ),
-            const SizedBox(height: 16),
-            _DetailItem(
-              label: 'Aktivitas',
-              value: logbook.activity,
-              isMultiline: true,
-            ),
-            if (logbook.komentar.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              _DetailItem(
-                label: 'Komentar',
-                value: logbook.komentar,
-                isMultiline: true,
-              ),
-            ],
-            const SizedBox(height: 20),
-            Text(
-              'Status Persetujuan',
-              style: t.bodySmall?.copyWith(
-                color: AppColors.navy.withOpacity(0.7),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: _StatusBadge(
-                    label: 'Dosen',
-                    status: logbook.statusDosen,
-                    color: _getStatusColor(logbook.statusDosen),
+                  _DetailItem(
+                    label: 'Judul Kegiatan',
+                    value: logbook.judulKegiatan,
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _StatusBadge(
-                    label: 'Mentor',
-                    status: logbook.statusMentor,
-                    color: _getStatusColor(logbook.statusMentor),
+                  const SizedBox(height: 16),
+                  _DetailItem(
+                    label: 'Tanggal',
+                    value:
+                        '${logbook.date.day}/${logbook.date.month}/${logbook.date.year}',
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(height: 16),
+                  _DetailItem(
+                    label: 'Aktivitas',
+                    value: logbook.activity,
+                    isMultiline: true,
+                  ),
+                  if (logbook.komentar.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    _DetailItem(
+                      label: 'Komentar',
+                      value: logbook.komentar,
+                      isMultiline: true,
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  Text(
+                    'Status Persetujuan',
+                    style: t.bodySmall?.copyWith(
+                      color: AppColors.navy.withOpacity(0.7),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _StatusBadge(
+                          label: 'Dosen',
+                          status: logbook.statusDosen,
+                          color: _getStatusColor(logbook.statusDosen),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _StatusBadge(
+                          label: 'Mentor',
+                          status: logbook.statusMentor,
+                          color: _getStatusColor(logbook.statusMentor),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -672,7 +670,6 @@ class _LogbookDetailDialog extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  
                 ),
                 child: Text(
                   'Tutup',
@@ -726,9 +723,7 @@ class _DetailItem extends StatelessWidget {
           ),
           child: Text(
             value,
-            style: t.bodyMedium?.copyWith(
-              color: AppColors.navyDark,
-            ),
+            style: t.bodyMedium?.copyWith(color: AppColors.navyDark),
             maxLines: isMultiline ? null : 1,
             overflow: isMultiline ? null : TextOverflow.ellipsis,
           ),
@@ -807,6 +802,48 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
   final _aktivitasController = TextEditingController();
 
   DateTime? _tanggal;
+  DateTime? _tglMulai;
+  bool _isLoadingTglMulai = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTglMulai();
+  }
+
+  Future<void> _loadTglMulai() async {
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.studentId)
+          .get();
+
+      if (userDoc.exists) {
+        final userData = userDoc.data() as Map<String, dynamic>;
+        final tglMulaiData = userData['tglMulai'];
+
+        if (tglMulaiData != null) {
+          if (tglMulaiData is Timestamp) {
+            _tglMulai = tglMulaiData.toDate();
+          } else if (tglMulaiData is String) {
+            _tglMulai = DateTime.tryParse(tglMulaiData);
+          } else if (tglMulaiData is DateTime) {
+            _tglMulai = tglMulaiData;
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorMessage('Error memuat tanggal mulai magang: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingTglMulai = false;
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -826,10 +863,13 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
   Future<void> _pickDate() async {
     final now = DateTime.now();
 
+    // Gunakan tglMulai sebagai firstDate jika tersedia, jika tidak gunakan 1 tahun yang lalu
+    final firstDate = _tglMulai ?? DateTime(now.year - 1);
+
     final picked = await showDatePicker(
       context: context,
       initialDate: _tanggal ?? now,
-      firstDate: DateTime(now.year - 1),
+      firstDate: firstDate,
       lastDate: now, // Hanya bisa pilih hingga hari ini
       helpText: '',
       builder: (context, child) {
@@ -866,7 +906,7 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
   void _showErrorMessage(String message) {
     // Hapus SnackBar yang sedang ditampilkan
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    
+
     // Tampilkan pesan error di dalam dialog menggunakan AlertDialog
     showDialog(
       context: context,
@@ -898,9 +938,9 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
                 Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.navyDark,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.navyDark),
                 ),
                 const SizedBox(height: 16),
                 SizedBox(
@@ -939,22 +979,54 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
     // Validasi: Tanggal tidak boleh lebih dari hari ini
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final selectedDate = DateTime(_tanggal!.year, _tanggal!.month, _tanggal!.day);
+    final selectedDate = DateTime(
+      _tanggal!.year,
+      _tanggal!.month,
+      _tanggal!.day,
+    );
 
     if (selectedDate.isAfter(today)) {
       _showErrorMessage('Tanggal tidak boleh melebihi hari ini');
       return;
     }
 
+    // Validasi: Tanggal tidak boleh kurang dari tanggal mulai magang
+    if (_tglMulai != null) {
+      final tglMulaiOnly = DateTime(
+        _tglMulai!.year,
+        _tglMulai!.month,
+        _tglMulai!.day,
+      );
+      if (selectedDate.isBefore(tglMulaiOnly)) {
+        _showErrorMessage(
+          'Tanggal tidak boleh sebelum tanggal mulai magang '
+          '(${_tglMulai!.day}/${_tglMulai!.month}/${_tglMulai!.year})',
+        );
+        return;
+      }
+    }
+
     // Validasi: Cek apakah tanggal sudah ada di logbook
     try {
       final existingLogbooks = await widget.logbookService
-          .getLogbooksByDateRange(widget.studentId, selectedDate, selectedDate.add(const Duration(days: 1)))
+          .getLogbooksByDateRange(widget.studentId, selectedDate, selectedDate)
           .first;
 
-      if (existingLogbooks.isNotEmpty) {
+      // Filter untuk memastikan hanya tanggal yang sama persis
+      final exactDateLogbooks = existingLogbooks.where((logbook) {
+        final logbookDate = DateTime(
+          logbook.date.year,
+          logbook.date.month,
+          logbook.date.day,
+        );
+        return logbookDate.isAtSameMomentAs(selectedDate);
+      }).toList();
+
+      if (exactDateLogbooks.isNotEmpty) {
         if (mounted) {
-          _showErrorMessage('Logbook untuk tanggal ini sudah ada. Silakan tunggu proses verifikasi selesai.');
+          _showErrorMessage(
+            'Logbook untuk tanggal ini sudah ada. Silakan tunggu proses verifikasi selesai.',
+          );
         }
         return;
       }
@@ -975,6 +1047,7 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
         statusMentor: 'pending',
         dosenId: widget.dosenId,
         mentorId: widget.mentorId,
+        createdAt: now,
       );
 
       await widget.logbookService.createLogbook(logbook);
@@ -984,7 +1057,7 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
       }
     } catch (e) {
       if (mounted) {
-       _showErrorMessage('Error: $e');
+        _showErrorMessage('Error: $e');
       }
     }
   }

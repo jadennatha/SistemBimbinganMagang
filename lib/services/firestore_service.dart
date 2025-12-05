@@ -53,18 +53,65 @@ class FirestoreService {
 
   // 4. Fungsi Ambil Nama Dosen secara Realtime (Stream)
   Stream<String> getUserNameStream(String uid) {
-    return _db
-        .collection(_userCollection)
-        .doc(uid)
-        .snapshots()
-        .map((snapshot) {
-          if (snapshot.exists && snapshot.data() != null) {
-            final data = snapshot.data() as Map<String, dynamic>;
-            return data['nama'] ?? '-';
-          } else {
-            return '-';
-          }
-        });
+    return _db.collection(_userCollection).doc(uid).snapshots().map((snapshot) {
+      if (snapshot.exists && snapshot.data() != null) {
+        final data = snapshot.data() as Map<String, dynamic>;
+        return data['nama'] ?? '-';
+      } else {
+        return '-';
+      }
+    });
+  }
+
+  Stream<String> getUserTotalInternday(String uid) {
+    return _db.collection(_userCollection).doc(uid).snapshots().map((snapshot) {
+      if (snapshot.exists && snapshot.data() != null) {
+        final userData = snapshot.data() as Map<String, dynamic>;
+        final tglMulai = userData['tglMulai'];
+        final tglSelesai = userData['tglSelesai'];
+
+        if (tglMulai == null || tglSelesai == null) {
+          return '-';
+        }
+
+        DateTime startDate;
+        DateTime endDate;
+
+        // Parse tanggal dari Firestore (bisa Timestamp, String, atau DateTime)
+        if (tglMulai is Timestamp) {
+          startDate = tglMulai.toDate();
+        } else if (tglMulai is String) {
+          startDate = DateTime.parse(tglMulai);
+        } else if (tglMulai is DateTime) {
+          startDate = tglMulai;
+        } else {
+          return '-';
+        }
+
+        if (tglSelesai is Timestamp) {
+          endDate = tglSelesai.toDate();
+        } else if (tglSelesai is String) {
+          endDate = DateTime.parse(tglSelesai);
+        } else if (tglSelesai is DateTime) {
+          endDate = tglSelesai;
+        } else {
+          return '-';
+        }
+
+        // Hitung total hari (tidak termasuk jam, hanya hari)
+        final startDateOnly = DateTime(
+          startDate.year,
+          startDate.month,
+          startDate.day,
+        );
+        final endDateOnly = DateTime(endDate.year, endDate.month, endDate.day);
+        final totalDays = endDateOnly.difference(startDateOnly).inDays + 1;
+
+        return totalDays.toString();
+      } else {
+        return '-';
+      }
+    });
   }
 
   // 5. Fungsi Hitung Progress Magang (real-time)
@@ -119,10 +166,18 @@ class FirestoreService {
           }
 
           // Hitung total hari (tidak termasuk jam, hanya hari)
-          final startDateOnly = DateTime(startDate.year, startDate.month, startDate.day);
-          final endDateOnly = DateTime(endDate.year, endDate.month, endDate.day);
+          final startDateOnly = DateTime(
+            startDate.year,
+            startDate.month,
+            startDate.day,
+          );
+          final endDateOnly = DateTime(
+            endDate.year,
+            endDate.month,
+            endDate.day,
+          );
           final totalDays = endDateOnly.difference(startDateOnly).inDays + 1;
-          
+
           if (totalDays <= 0) {
             yield 0.0;
             return;
@@ -132,12 +187,13 @@ class FirestoreService {
           yield* _db
               .collection(logbookCollection)
               .where('studentId', isEqualTo: studentId)
+              .where('statusDosen', isEqualTo: 'approved')
               .snapshots()
               .map((snapshot) {
-            final logbookCount = snapshot.docs.length;
-            final progress = (logbookCount / totalDays).clamp(0.0, 1.0);
-            return progress;
-          });
+                final logbookCount = snapshot.docs.length;
+                final progress = (logbookCount / totalDays).clamp(0.0, 1.0);
+                return progress;
+              });
         });
   }
 }

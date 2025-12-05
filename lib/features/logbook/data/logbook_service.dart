@@ -26,7 +26,21 @@ class LogbookService {
     return _firestore
         .collection('logbooks')
         .where('studentId', isEqualTo: studentId)
-        .orderBy('date', descending: true)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => LogbookModel.fromFirestore(doc))
+              .toList();
+        });
+  }
+
+  Stream<List<LogbookModel>> getStudentLogbooksVerified(String studentId) {
+    return _firestore
+        .collection('logbooks')
+        .where('studentId', isEqualTo: studentId)
+        .where('statusDosen', isEqualTo: 'approved')
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs

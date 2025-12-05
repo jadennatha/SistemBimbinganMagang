@@ -151,6 +151,7 @@ class _LogbookFormDialogState extends State<LogbookFormDialog> {
               statusMentor: widget.initialLogbook?.statusMentor ?? 'pending',
               dosenId: widget.dosenId,
               mentorId: widget.mentorId,
+              createdAt: widget.initialLogbook?.createdAt ?? DateTime.now(),
             );
 
             widget.onSave(logbook);

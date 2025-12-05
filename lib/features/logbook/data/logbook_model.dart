@@ -11,6 +11,7 @@ class LogbookModel {
   final String dosenId;
   final String mentorId;
   final String judulKegiatan;
+  final DateTime createdAt;
 
   LogbookModel({
     this.id,
@@ -23,6 +24,7 @@ class LogbookModel {
     this.statusMentor = 'pending',
     required this.dosenId,
     required this.mentorId,
+    required this.createdAt,
   });
 
   factory LogbookModel.fromFirestore(DocumentSnapshot doc) {
@@ -38,6 +40,7 @@ class LogbookModel {
       statusMentor: data['statusMentor'] ?? 'pending',
       dosenId: data['dosenId'] ?? '',
       mentorId: data['mentorId'] ?? '',
+      createdAt: DateTime.now()
     );
   }
 
@@ -52,6 +55,7 @@ class LogbookModel {
       'statusMentor': statusMentor,
       'dosenId': dosenId,
       'mentorId': mentorId,
+      'createdAt': Timestamp.fromDate(createdAt),
     };
   }
 
@@ -78,6 +82,7 @@ class LogbookModel {
       statusMentor: statusMentor ?? this.statusMentor,
       dosenId: dosenId ?? this.dosenId,
       mentorId: mentorId ?? this.mentorId,
+      createdAt: createdAt,
     );
   }
 }
