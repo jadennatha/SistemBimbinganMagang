@@ -89,3 +89,24 @@ const LogbookValidationSummary demoLogbookSummary = LogbookValidationSummary(
   revisionCount: 1,
   approvedCount: 1,
 );
+
+/// Helper function to convert status string to LogbookStatus enum
+LogbookStatus statusFromString(String status) {
+  switch (status.toLowerCase()) {
+    case 'approved':
+      return LogbookStatus.approved;
+    case 'rejected':
+      return LogbookStatus.revision;
+    case 'pending':
+    default:
+      return LogbookStatus.waiting;
+  }
+}
+
+/// Helper function to format date label
+String formatDateLabel(DateTime date) {
+  final now = DateTime.now();
+  final difference = now.difference(date);
+
+  return '${date.day}/${date.month}/${date.year}';
+}

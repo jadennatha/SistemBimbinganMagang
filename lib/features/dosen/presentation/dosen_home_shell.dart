@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../app/app_colors.dart';
+import '../../auth/data/auth_provider.dart';
 import 'dosen_floating_navbar.dart';
 import 'dosen_main_screen.dart';
 import 'dosen_history_screen.dart';
@@ -38,6 +40,9 @@ class _DosenHomeShellState extends State<DosenHomeShell> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final isMentor = authProvider.isMentor;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       extendBody: true,
@@ -51,6 +56,7 @@ class _DosenHomeShellState extends State<DosenHomeShell> {
           child: DosenFloatingNavbar(
             currentIndex: _currentIndex,
             onChanged: _onNavChanged,
+            isMentor: isMentor,
           ),
         ),
       ),

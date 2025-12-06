@@ -107,4 +107,112 @@ class LogbookService {
   String? getCurrentUserId() {
     return _auth.currentUser?.uid;
   }
+
+  // Get logbooks for dosen (filter by dosenId)
+  Stream<List<LogbookModel>> getLogbooksByDosenId(String dosenId) {
+    return _firestore
+        .collection('logbooks')
+        .where('dosenId', isEqualTo: dosenId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => LogbookModel.fromFirestore(doc))
+              .toList();
+        });
+  }
+
+  // Get logbooks for mentor (filter by mentorId)
+  Stream<List<LogbookModel>> getLogbooksByMentorId(String mentorId) {
+    return _firestore
+        .collection('logbooks')
+        .where('mentorId', isEqualTo: mentorId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => LogbookModel.fromFirestore(doc))
+              .toList();
+        });
+  }
+
+  // Get logbooks by supervisor (dosen or mentor)
+  Stream<List<LogbookModel>> getLogbooksBySupervisorId(
+    String supervisorId,
+    bool isMentor,
+  ) {
+    if (isMentor) {
+      return getLogbooksByMentorId(supervisorId);
+    } else {
+      return getLogbooksByDosenId(supervisorId);
+    }
+  }
+
+  // Get logbooks by status for dosen
+  Stream<List<LogbookModel>> getLogbooksByDosenIdAndStatus(
+    String dosenId,
+    String status,
+  ) {
+    return _firestore
+        .collection('logbooks')
+        .where('dosenId', isEqualTo: dosenId)
+        .where('statusDosen', isEqualTo: status)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => LogbookModel.fromFirestore(doc))
+              .toList();
+        });
+  }
+
+  // Get logbooks by status for mentor
+  Stream<List<LogbookModel>> getLogbooksByMentorIdAndStatus(
+    String mentorId,
+    String status,
+  ) {
+    return _firestore
+        .collection('logbooks')
+        .where('mentorId', isEqualTo: mentorId)
+        .where('statusMentor', isEqualTo: status)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => LogbookModel.fromFirestore(doc))
+              .toList();
+        });
+  }
+
+  // Update status dosen
+  Future<void> updateDosenStatus(
+    String logbookId,
+    String status,
+    String komentar,
+  ) async {
+    try {
+      await _firestore.collection('logbooks').doc(logbookId).update({
+        'statusDosen': status,
+        'komentar': komentar,
+      });
+    } catch (e) {
+      throw Exception('Gagal mengupdate status: $e');
+    }
+  }
+
+  // Update status mentor
+  Future<void> updateMentorStatus(
+    String logbookId,
+    String status,
+    String komentar,
+  ) async {
+    try {
+      await _firestore.collection('logbooks').doc(logbookId).update({
+        'statusMentor': status,
+        'komentar': komentar,
+      });
+    } catch (e) {
+      throw Exception('Gagal mengupdate status: $e');
+    }
+  }
 }

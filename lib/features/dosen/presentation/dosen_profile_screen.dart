@@ -23,6 +23,9 @@ class _DosenProfileScreenState extends State<DosenProfileScreen>
   String _email = '';
   String _nip = '';
   String _fakultas = '';
+  // Mentor-specific fields
+  String _perusahaan = '';
+  String _posisi = '';
   bool _isLoading = true;
 
   @override
@@ -55,6 +58,9 @@ class _DosenProfileScreenState extends State<DosenProfileScreen>
             _nama = data?['nama'] ?? 'Dosen';
             _nip = data?['nip'] ?? '';
             _fakultas = data?['fakultas'] ?? '';
+            // Mentor-specific fields
+            _perusahaan = data?['perusahaan'] ?? '';
+            _posisi = data?['posisi'] ?? '';
             _isLoading = false;
           });
         } else {
@@ -112,7 +118,7 @@ class _DosenProfileScreenState extends State<DosenProfileScreen>
               const SizedBox(height: 24),
 
               // Info Section
-              _buildInfoSection(textTheme, idLabel),
+              _buildInfoSection(textTheme, idLabel, isMentor),
 
               const SizedBox(height: 24),
 
@@ -212,7 +218,7 @@ class _DosenProfileScreenState extends State<DosenProfileScreen>
     );
   }
 
-  Widget _buildInfoSection(TextTheme textTheme, String idLabel) {
+  Widget _buildInfoSection(TextTheme textTheme, String idLabel, bool isMentor) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -238,19 +244,39 @@ class _DosenProfileScreenState extends State<DosenProfileScreen>
             ),
           ),
           const SizedBox(height: 16),
-          _buildInfoRow(
-            Icons.badge_rounded,
-            idLabel,
-            _nip.isNotEmpty ? _nip : '-',
-          ),
-          const SizedBox(height: 12),
-          _buildInfoRow(
-            Icons.school_rounded,
-            'Fakultas',
-            _fakultas.isNotEmpty ? _fakultas : '-',
-          ),
-          const SizedBox(height: 12),
-          _buildInfoRow(Icons.email_rounded, 'Email', _email),
+
+          // Conditional rendering based on role
+          if (isMentor) ...[
+            // Mentor: Show perusahaan, posisi, email
+            _buildInfoRow(
+              Icons.business_rounded,
+              'Perusahaan',
+              _perusahaan.isNotEmpty ? _perusahaan : '-',
+            ),
+            const SizedBox(height: 12),
+            _buildInfoRow(
+              Icons.work_rounded,
+              'Posisi',
+              _posisi.isNotEmpty ? _posisi : '-',
+            ),
+            const SizedBox(height: 12),
+            _buildInfoRow(Icons.email_rounded, 'Email', _email),
+          ] else ...[
+            // Dosen: Show NIP, fakultas, email
+            _buildInfoRow(
+              Icons.badge_rounded,
+              idLabel,
+              _nip.isNotEmpty ? _nip : '-',
+            ),
+            const SizedBox(height: 12),
+            _buildInfoRow(
+              Icons.school_rounded,
+              'Fakultas',
+              _fakultas.isNotEmpty ? _fakultas : '-',
+            ),
+            const SizedBox(height: 12),
+            _buildInfoRow(Icons.email_rounded, 'Email', _email),
+          ],
         ],
       ),
     );

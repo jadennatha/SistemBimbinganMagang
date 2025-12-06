@@ -1,20 +1,103 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../app/app_colors.dart';
 import '../data/logbook_validation_models.dart';
+import '../data/logbook_validation_service.dart';
+import '../../auth/data/auth_provider.dart';
 
-class LogbookValidationDetailScreen extends StatelessWidget {
+class LogbookValidationDetailScreen extends StatefulWidget {
   const LogbookValidationDetailScreen({super.key, required this.item});
 
   final LogbookValidationItem item;
 
+  @override
+  State<LogbookValidationDetailScreen> createState() =>
+      _LogbookValidationDetailScreenState();
+}
+
+class _LogbookValidationDetailScreenState
+    extends State<LogbookValidationDetailScreen> {
+  final LogbookValidationService _validationService =
+      LogbookValidationService();
+  bool _isLoading = false;
+
   Color get _statusColor {
-    if (item.isApproved) return AppColors.greenArrow;
-    if (item.isRevision) return Colors.orange;
+    if (widget.item.isApproved) return AppColors.greenArrow;
+    if (widget.item.isRevision) return Colors.orange;
     return AppColors.blueBook;
   }
 
-  String get _statusLabel => item.statusLabel;
+  String get _statusLabel => widget.item.statusLabel;
+
+  Future<void> _handleApprove() async {
+    final authProvider = context.read<AuthProvider>();
+    final isMentor = authProvider.isMentor;
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _validationService.updateStatus(
+        widget.item.id,
+        'approved',
+        '', // No comment for approval
+        isMentor,
+      );
+
+      if (mounted) {
+        setState(() => _isLoading = false);
+        await _showStatusDialog(
+          context,
+          title: 'Logbook disetujui',
+          message: 'Status logbook mahasiswa sudah Kamu setujui.',
+          color: AppColors.greenArrow,
+        );
+        if (mounted) {
+          Navigator.of(context).pop(); // Return to history screen
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menyetujui logbook: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleRevision(String komentar) async {
+    final authProvider = context.read<AuthProvider>();
+    final isMentor = authProvider.isMentor;
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _validationService.updateStatus(
+        widget.item.id,
+        'rejected',
+        komentar,
+        isMentor,
+      );
+
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal mengirim revisi: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,8 +177,8 @@ class LogbookValidationDetailScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  item.studentName,
-                                  style: t.bodyMedium?.copyWith(
+                                  widget.item.studentName,
+                                  style: t.titleSmall?.copyWith(
                                     color: AppColors.navyDark,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -112,7 +195,7 @@ class LogbookValidationDetailScreen extends StatelessWidget {
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
-                                      item.dateLabel,
+                                      widget.item.dateLabel,
                                       style: t.bodySmall?.copyWith(
                                         color: AppColors.blueGrey.withOpacity(
                                           0.9,
@@ -167,7 +250,7 @@ class LogbookValidationDetailScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            item.title,
+                            widget.item.title,
                             style: t.titleMedium?.copyWith(
                               color: AppColors.navyDark,
                               fontWeight: FontWeight.w700,
@@ -175,7 +258,7 @@ class LogbookValidationDetailScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            item.description,
+                            widget.item.description,
                             textAlign: TextAlign.justify,
                             style: t.bodyMedium?.copyWith(
                               color: AppColors.navy.withOpacity(0.8),
@@ -188,8 +271,8 @@ class LogbookValidationDetailScreen extends StatelessWidget {
 
                     const SizedBox(height: 24),
 
-                    // hanya tampil kalau belum disetujui
-                    if (!item.isApproved) ...[
+                    // hanya tampil kalau masih menunggu (pending)
+                    if (widget.item.isWaiting) ...[
                       Text(
                         'Tindakan',
                         style: t.titleMedium?.copyWith(
@@ -205,7 +288,9 @@ class LogbookValidationDetailScreen extends StatelessWidget {
                             child: SizedBox(
                               height: 46,
                               child: ElevatedButton(
-                                onPressed: () => _showRevisionSheet(context),
+                                onPressed: _isLoading
+                                    ? null
+                                    : () => _showRevisionSheet(context),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.orange.shade600,
                                   foregroundColor: Colors.white,
@@ -213,7 +298,19 @@ class LogbookValidationDetailScreen extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                 ),
-                                child: const Text('Minta revisi'),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
+                                        ),
+                                      )
+                                    : const Text('Minta revisi'),
                               ),
                             ),
                           ),
@@ -222,15 +319,7 @@ class LogbookValidationDetailScreen extends StatelessWidget {
                             child: SizedBox(
                               height: 46,
                               child: ElevatedButton(
-                                onPressed: () {
-                                  _showStatusDialog(
-                                    context,
-                                    title: 'Logbook disetujui',
-                                    message:
-                                        'Status logbook mahasiswa sudah Kamu setujui.',
-                                    color: AppColors.greenArrow,
-                                  );
-                                },
+                                onPressed: _isLoading ? null : _handleApprove,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.greenArrow,
                                   foregroundColor: Colors.white,
@@ -238,7 +327,19 @@ class LogbookValidationDetailScreen extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                 ),
-                                child: const Text('Setujui'),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
+                                        ),
+                                      )
+                                    : const Text('Setujui'),
                               ),
                             ),
                           ),
@@ -260,7 +361,7 @@ class LogbookValidationDetailScreen extends StatelessWidget {
     final controller = TextEditingController();
     String? errorText;
 
-    showModalBottomSheet<bool>(
+    showModalBottomSheet<String?>(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surfaceLight,
@@ -359,7 +460,7 @@ class LogbookValidationDetailScreen extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
                             final note = controller.text.trim();
                             if (note.isEmpty) {
                               setStateSheet(() {
@@ -367,7 +468,7 @@ class LogbookValidationDetailScreen extends StatelessWidget {
                               });
                               return;
                             }
-                            Navigator.of(sheetContext).pop(true);
+                            Navigator.of(sheetContext).pop(note);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orange.shade600,
@@ -387,14 +488,22 @@ class LogbookValidationDetailScreen extends StatelessWidget {
           ),
         );
       },
-    ).then((result) {
-      if (result == true) {
-        _showStatusDialog(
-          context,
-          title: 'Revisi dikirim',
-          message: 'Catatan revisi sudah terkirim ke mahasiswa.',
-          color: Colors.orange.shade600,
-        );
+    ).then((result) async {
+      if (result != null) {
+        // Call Firebase update with comment
+        await _handleRevision(result);
+
+        if (mounted) {
+          await _showStatusDialog(
+            context,
+            title: 'Revisi dikirim',
+            message: 'Catatan revisi sudah terkirim ke mahasiswa.',
+            color: Colors.orange.shade600,
+          );
+          if (mounted) {
+            Navigator.of(context).pop(); // Return to history screen
+          }
+        }
       }
     });
   }

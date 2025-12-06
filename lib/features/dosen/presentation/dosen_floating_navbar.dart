@@ -6,13 +6,15 @@ class DosenFloatingNavbar extends StatelessWidget {
     super.key,
     required this.currentIndex,
     required this.onChanged,
+    this.isMentor = false,
   });
 
   final int currentIndex;
   final ValueChanged<int> onChanged;
+  final bool isMentor;
 
-  static const List<_NavItemData> items = [
-    _NavItemData(
+  List<_NavItemData> get items => [
+    const _NavItemData(
       icon: Icons.dashboard_rounded,
       label: 'Dashboard',
       accent1: AppColors.blueBook,
@@ -20,11 +22,11 @@ class DosenFloatingNavbar extends StatelessWidget {
     ),
     _NavItemData(
       icon: Icons.history_rounded,
-      label: 'History',
+      label: isMentor ? 'Validasi' : 'History',
       accent1: AppColors.navy,
       accent2: AppColors.blueBook,
     ),
-    _NavItemData(
+    const _NavItemData(
       icon: Icons.person_rounded,
       label: 'Profil',
       accent1: AppColors.blueGrey,

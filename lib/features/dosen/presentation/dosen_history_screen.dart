@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 
 import '../../../app/app_colors.dart';
 import '../data/logbook_validation_models.dart';
+import '../data/logbook_validation_service.dart';
 import 'logbook_validation_detail_screen.dart';
+import '../../auth/data/auth_provider.dart';
 
 class DosenHistoryScreen extends StatefulWidget {
   const DosenHistoryScreen({super.key});
@@ -16,6 +20,8 @@ class _DosenHistoryScreenState extends State<DosenHistoryScreen>
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
   String _selectedFilter = 'Semua';
+  final LogbookValidationService _validationService =
+      LogbookValidationService();
 
   final List<String> _filters = ['Semua', 'Disetujui', 'Revisi', 'Menunggu'];
 
@@ -39,136 +45,173 @@ class _DosenHistoryScreenState extends State<DosenHistoryScreen>
     super.dispose();
   }
 
-  List<LogbookValidationItem> _getFilteredItems() {
-    if (_selectedFilter == 'Semua') return demoLogbookValidationItems;
+  List<LogbookValidationItem> _getFilteredItems(
+    List<LogbookValidationItem> allItems,
+  ) {
+    if (_selectedFilter == 'Semua') return allItems;
     if (_selectedFilter == 'Disetujui') {
-      return demoLogbookValidationItems
-          .where((e) => e.status == LogbookStatus.approved)
-          .toList();
+      return allItems.where((e) => e.status == LogbookStatus.approved).toList();
     }
     if (_selectedFilter == 'Revisi') {
-      return demoLogbookValidationItems
-          .where((e) => e.status == LogbookStatus.revision)
-          .toList();
+      return allItems.where((e) => e.status == LogbookStatus.revision).toList();
     }
     if (_selectedFilter == 'Menunggu') {
-      return demoLogbookValidationItems
-          .where((e) => e.status == LogbookStatus.waiting)
-          .toList();
+      return allItems.where((e) => e.status == LogbookStatus.waiting).toList();
     }
-    return demoLogbookValidationItems;
+    return allItems;
   }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final items = _getFilteredItems();
+    final authProvider = context.watch<AuthProvider>();
+    final isMentor = authProvider.isMentor;
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return const Center(child: Text('User not logged in'));
+    }
 
     return FadeTransition(
       opacity: _fadeAnimation,
       child: SafeArea(
         bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Text(
-                'Riwayat Validasi',
-                style: textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
+        child: StreamBuilder<List<LogbookValidationItem>>(
+          stream: _validationService.getValidationItems(user.uid, isMentor),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  'Error: ${snapshot.error}',
+                  style: const TextStyle(color: Colors.white),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Daftar logbook yang sudah kamu validasi',
-                style: textTheme.bodyMedium?.copyWith(
-                  color: AppColors.blueGrey,
-                ),
-              ),
+              );
+            }
 
-              const SizedBox(height: 20),
+            final allItems = snapshot.data ?? [];
+            final items = _getFilteredItems(allItems);
 
-              // Stats Bar
-              _buildStatsBar(textTheme),
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Text(
+                    'Riwayat Validasi',
+                    style: textTheme.headlineSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    isMentor
+                        ? 'Daftar logbook mahasiswa bimbinganmu'
+                        : 'Daftar logbook yang sudah kamu validasi',
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: AppColors.blueGrey,
+                    ),
+                  ),
 
-              const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-              // Filter Chips
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: _filters.map((filter) {
-                    final isSelected = _selectedFilter == filter;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: _FilterChip(
-                        label: filter,
-                        isSelected: isSelected,
-                        onTap: () {
-                          setState(() => _selectedFilter = filter);
-                        },
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
+                  // Stats Bar
+                  _buildStatsBar(textTheme, allItems, isMentor),
 
-              const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
-              // List
-              Expanded(
-                child: items.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.inbox_rounded,
-                              size: 64,
-                              color: Colors.white.withOpacity(0.3),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Tidak ada riwayat',
-                              style: textTheme.bodyLarge?.copyWith(
-                                color: Colors.white.withOpacity(0.5),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView.separated(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.only(bottom: 100),
-                        itemCount: items.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final item = items[index];
-                          return _HistoryCard(
-                            item: item,
+                  // Filter Chips
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: _filters.map((filter) {
+                        final isSelected = _selectedFilter == filter;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: _FilterChip(
+                            label: filter,
+                            isSelected: isSelected,
                             onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      LogbookValidationDetailScreen(item: item),
+                              setState(() => _selectedFilter = filter);
+                            },
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // List
+                  Expanded(
+                    child: items.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.inbox_rounded,
+                                  size: 64,
+                                  color: Colors.white.withOpacity(0.3),
                                 ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Tidak ada logbook',
+                                  style: textTheme.bodyLarge?.copyWith(
+                                    color: Colors.white.withOpacity(0.5),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.separated(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.only(bottom: 100),
+                            itemCount: items.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final item = items[index];
+                              return _HistoryCard(
+                                item: item,
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          LogbookValidationDetailScreen(
+                                            item: item,
+                                          ),
+                                    ),
+                                  );
+                                },
                               );
                             },
-                          );
-                        },
-                      ),
+                          ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildStatsBar(TextTheme textTheme) {
+  Widget _buildStatsBar(
+    TextTheme textTheme,
+    List<LogbookValidationItem> items,
+    bool isMentor,
+  ) {
+    // Calculate stats from real data
+    int approvedCount = items.where((e) => e.isApproved).length;
+    int revisionCount = items.where((e) => e.isRevision).length;
+    int waitingCount = items.where((e) => e.isWaiting).length;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -184,11 +227,19 @@ class _DosenHistoryScreenState extends State<DosenHistoryScreen>
       ),
       child: Row(
         children: [
-          _buildStatItem('12', 'Disetujui', AppColors.greenArrow),
+          _buildStatItem(
+            approvedCount.toString(),
+            'Disetujui',
+            AppColors.greenArrow,
+          ),
           _buildDivider(),
-          _buildStatItem('3', 'Revisi', Colors.orange),
+          _buildStatItem(revisionCount.toString(), 'Revisi', Colors.orange),
           _buildDivider(),
-          _buildStatItem('5', 'Menunggu', AppColors.blueBook),
+          _buildStatItem(
+            waitingCount.toString(),
+            'Menunggu',
+            AppColors.blueBook,
+          ),
         ],
       ),
     );
@@ -336,7 +387,7 @@ class _HistoryCard extends StatelessWidget {
                     children: [
                       Text(
                         item.studentName,
-                        style: textTheme.bodyMedium?.copyWith(
+                        style: textTheme.titleSmall?.copyWith(
                           color: AppColors.navyDark,
                           fontWeight: FontWeight.w700,
                         ),

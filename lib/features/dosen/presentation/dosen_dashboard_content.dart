@@ -50,6 +50,10 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
   }
 
   Future<void> _loadUserData() async {
+    // Fetch role terlebih dahulu
+    final authProvider = context.read<AuthProvider>();
+    await authProvider.fetchUserRole();
+
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
@@ -307,6 +311,9 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
   }
 
   Widget _buildQuickActions(TextTheme textTheme) {
+    final authProvider = context.watch<AuthProvider>();
+    final isMentor = authProvider.isMentor;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -346,9 +353,10 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
                 color: AppColors.navy,
               ),
               const SizedBox(width: 12),
+              // Conditional: Mentor shows "Perusahaan", Dosen shows "Akademik"
               _buildActionButton(
-                icon: Icons.people_rounded,
-                label: 'Mahasiswa',
+                icon: isMentor ? Icons.business_rounded : Icons.school_rounded,
+                label: isMentor ? 'Perusahaan' : 'Akademik',
                 color: AppColors.greenArrow,
               ),
             ],
