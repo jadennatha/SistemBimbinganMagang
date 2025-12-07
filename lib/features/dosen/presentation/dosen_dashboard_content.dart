@@ -109,7 +109,7 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
         bottom: false,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 32, 20, 100),
+          padding: const EdgeInsets.fromLTRB(20, 32, 20, 40),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -135,25 +135,30 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        if (_nip.isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            'NIP: $_nip',
-                            style: textTheme.bodySmall?.copyWith(
-                              color: AppColors.blueGrey,
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Row(
-                          mainAxisSize: MainAxisSize.min,
                           children: [
+                            if (_nip.isNotEmpty) ...[
+                              Text(
+                                'NIP: $_nip',
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: AppColors.blueGrey,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                width: 1,
+                                height: 12,
+                                color: AppColors.blueGrey.withOpacity(0.5),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
                             const Icon(
                               Icons.verified,
                               size: 14,
                               color: AppColors.greenArrow,
                             ),
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 4),
                             Text(
                               roleLabel,
                               style: textTheme.labelSmall?.copyWith(
@@ -264,35 +269,11 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
           const SizedBox(height: 20),
           Row(
             children: [
-              _buildMiniStat(
-                context,
-                'Disetujui',
-                '12',
-                AppColors.greenArrow,
-                () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          const DosenHistoryScreen(initialFilter: 'Disetujui'),
-                    ),
-                  );
-                },
-              ),
+              _buildMiniStat(context, 'Disetujui', '12', AppColors.greenArrow),
               const SizedBox(width: 12),
-              _buildMiniStat(context, 'Revisi', '3', Colors.orange, () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        const DosenHistoryScreen(initialFilter: 'Revisi'),
-                  ),
-                );
-              }),
+              _buildMiniStat(context, 'Revisi', '3', Colors.orange),
               const SizedBox(width: 12),
-              _buildMiniStat(context, 'Mahasiswa', '8', AppColors.blueBook, () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Fitur belum tersedia')),
-                );
-              }),
+              _buildMiniStat(context, 'Mahasiswa', '8', AppColors.blueBook),
             ],
           ),
         ],
@@ -305,40 +286,34 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
     String label,
     String value,
     Color color,
-    VoidCallback onTap,
   ) {
     return Expanded(
-      child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
-            child: Column(
-              children: [
-                Text(
-                  value,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: AppColors.navy.withOpacity(0.6),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+        ),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                color: color,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: AppColors.navy.withOpacity(0.6),
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -499,6 +474,22 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
             time: '3 jam lalu',
             color: Colors.orange,
           ),
+          const SizedBox(height: 12),
+          _buildActivityItem(
+            icon: Icons.check_circle_outline,
+            title: 'Logbook disetujui',
+            subtitle: 'Rian - Implementasi fitur',
+            time: 'Yesterday',
+            color: AppColors.greenArrow,
+          ),
+          const SizedBox(height: 12),
+          _buildActivityItem(
+            icon: Icons.edit_note_rounded,
+            title: 'Logbook baru',
+            subtitle: 'Siti - Testing aplikasi',
+            time: '2 days ago',
+            color: AppColors.blueBook,
+          ),
         ],
       ),
     );
@@ -540,16 +531,32 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
               Text(
                 subtitle,
                 style: TextStyle(
-                  color: AppColors.navy.withOpacity(0.6),
+                  color: AppColors.navy.withOpacity(0.8), // Darker opacity
                   fontSize: 12,
                 ),
               ),
             ],
           ),
         ),
-        Text(
-          time,
-          style: const TextStyle(color: AppColors.blueGrey, fontSize: 11),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.calendar_today_rounded,
+              size: 12,
+              color: AppColors.navy.withOpacity(0.6), // Darker icon
+            ),
+            const SizedBox(width: 4),
+            Text(
+              time,
+              style: TextStyle(
+                color: AppColors.navy.withOpacity(0.6), // Darker text
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ],
     );

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/app_colors.dart';
-import 'dosen_floating_navbar.dart';
 import 'dosen_main_screen.dart';
 import 'dosen_history_screen.dart';
 import 'dosen_profile_screen.dart';
@@ -40,18 +39,49 @@ class _DosenHomeShellState extends State<DosenHomeShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      extendBody: true,
-      // IndexedStack supaya state tiap tab tetap tersimpan
       body: IndexedStack(index: _currentIndex, children: _pages),
-      // navbar melayang di bawah
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-          child: DosenFloatingNavbar(
-            currentIndex: _currentIndex,
-            onChanged: _onNavChanged,
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: _onNavChanged,
+          backgroundColor: Colors.white,
+          selectedItemColor: AppColors.navyDark,
+          unselectedItemColor: AppColors.blueGrey,
+          showUnselectedLabels: true,
+          type: BottomNavigationBarType.fixed,
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 12,
           ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w500,
+            fontSize: 12,
+          ),
+          elevation: 0,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.dashboard_rounded),
+              label: 'Dashboard',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.history_rounded),
+              label: 'History',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_rounded),
+              label: 'Profil',
+            ),
+          ],
         ),
       ),
     );

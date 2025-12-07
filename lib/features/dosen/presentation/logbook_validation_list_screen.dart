@@ -109,10 +109,18 @@ class _LogbookValidationListScreenState
   }
 
   List<LogbookValidationItem> _filteredItems() {
-    if (_filter == null) return demoLogbookValidationItems;
-    return demoLogbookValidationItems
-        .where((e) => e.status == _filter)
+    // Filter out approved items entirely from this screen
+    final pendingOrRevision = demoLogbookValidationItems
+        .where(
+          (e) =>
+              e.status == LogbookStatus.waiting ||
+              e.status == LogbookStatus.revision,
+        )
         .toList();
+
+    if (_filter == null) return pendingOrRevision;
+
+    return pendingOrRevision.where((e) => e.status == _filter).toList();
   }
 }
 
@@ -196,11 +204,6 @@ class _SummaryCard extends StatelessWidget {
             count: summary.revisionCount,
             dotColor: const Color(0xFFFFD18A),
           ),
-          _SummaryLine(
-            label: 'Sudah disetujui',
-            count: summary.approvedCount,
-            dotColor: const Color(0xFFB5F0BE),
-          ),
         ],
       ),
     );
@@ -277,13 +280,6 @@ class _StatusFilterRow extends StatelessWidget {
           label: 'Revisi',
           selected: current == LogbookStatus.revision,
           onTap: () => onChanged(LogbookStatus.revision),
-          textTheme: textTheme,
-        ),
-        const SizedBox(width: 8),
-        _FilterChip(
-          label: 'Disetujui',
-          selected: current == LogbookStatus.approved,
-          onTap: () => onChanged(LogbookStatus.approved),
           textTheme: textTheme,
         ),
         const SizedBox(width: 8),
@@ -368,7 +364,7 @@ class _LogbookTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               Container(

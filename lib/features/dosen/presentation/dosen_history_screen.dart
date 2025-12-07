@@ -109,13 +109,6 @@ class _DosenHistoryScreenState extends State<DosenHistoryScreen>
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Daftar logbook yang sudah kamu validasi',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: AppColors.blueGrey,
-                  ),
-                ),
 
                 const SizedBox(height: 20),
 
@@ -202,24 +195,29 @@ class _DosenHistoryScreenState extends State<DosenHistoryScreen>
 
   Widget _buildStatsBar(TextTheme textTheme) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.navy.withOpacity(0.8),
-            AppColors.blueBook.withOpacity(0.6),
-          ],
+        borderRadius: BorderRadius.circular(24),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2FB1E3), Color(0xFF2454B5)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Row(
         children: [
           _buildStatItem('12', 'Disetujui', AppColors.greenArrow),
-          _buildDivider(),
+          const SizedBox(width: 12),
           _buildStatItem('3', 'Revisi', Colors.orange),
-          _buildDivider(),
+          const SizedBox(width: 12),
           _buildStatItem('5', 'Menunggu', AppColors.blueBook),
         ],
       ),
@@ -228,34 +226,34 @@ class _DosenHistoryScreenState extends State<DosenHistoryScreen>
 
   Widget _buildStatItem(String value, String label, Color color) {
     return Expanded(
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: TextStyle(
-              color: color,
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                color: color,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.7),
-              fontSize: 12,
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: AppColors.navy.withOpacity(0.6),
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    );
-  }
-
-  Widget _buildDivider() {
-    return Container(
-      width: 1,
-      height: 40,
-      color: Colors.white.withOpacity(0.2),
     );
   }
 }
@@ -400,7 +398,7 @@ class _HistoryCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: _statusColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
                     item.statusLabel,
