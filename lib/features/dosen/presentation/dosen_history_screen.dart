@@ -5,7 +5,9 @@ import '../data/logbook_validation_models.dart';
 import 'logbook_validation_detail_screen.dart';
 
 class DosenHistoryScreen extends StatefulWidget {
-  const DosenHistoryScreen({super.key});
+  const DosenHistoryScreen({super.key, this.initialFilter});
+
+  final String? initialFilter;
 
   @override
   State<DosenHistoryScreen> createState() => _DosenHistoryScreenState();
@@ -15,13 +17,14 @@ class _DosenHistoryScreenState extends State<DosenHistoryScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
-  String _selectedFilter = 'Semua';
+  late String _selectedFilter;
 
-  final List<String> _filters = ['Semua', 'Disetujui', 'Revisi', 'Menunggu'];
+  final List<String> _filters = ['Semua', 'Menunggu', 'Revisi', 'Disetujui'];
 
   @override
   void initState() {
     super.initState();
+    _selectedFilter = widget.initialFilter ?? 'Semua';
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -64,104 +67,133 @@ class _DosenHistoryScreenState extends State<DosenHistoryScreen>
     final textTheme = Theme.of(context).textTheme;
     final items = _getFilteredItems();
 
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Text(
-                'Riwayat Validasi',
-                style: textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Daftar logbook yang sudah kamu validasi',
-                style: textTheme.bodyMedium?.copyWith(
-                  color: AppColors.blueGrey,
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Stats Bar
-              _buildStatsBar(textTheme),
-
-              const SizedBox(height: 20),
-
-              // Filter Chips
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: _filters.map((filter) {
-                    final isSelected = _selectedFilter == filter;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: _FilterChip(
-                        label: filter,
-                        isSelected: isSelected,
-                        onTap: () {
-                          setState(() => _selectedFilter = filter);
-                        },
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // List
-              Expanded(
-                child: items.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.inbox_rounded,
-                              size: 64,
-                              color: Colors.white.withOpacity(0.3),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Tidak ada riwayat',
-                              style: textTheme.bodyLarge?.copyWith(
-                                color: Colors.white.withOpacity(0.5),
-                              ),
-                            ),
-                          ],
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: FadeTransition(
+        opacity: _fadeAnimation,
+        child: SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                // Header
+                Row(
+                  children: [
+                    if (Navigator.canPop(context))
+                      Padding(
+                        padding: const EdgeInsets.only(right: 12),
+                        child: IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.white.withOpacity(0.1),
+                            padding: const EdgeInsets.all(8),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
                         ),
-                      )
-                    : ListView.separated(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.only(bottom: 100),
-                        itemCount: items.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final item = items[index];
-                          return _HistoryCard(
-                            item: item,
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      LogbookValidationDetailScreen(item: item),
-                                ),
-                              );
-                            },
-                          );
-                        },
                       ),
-              ),
-            ],
+                    Text(
+                      'Riwayat Validasi',
+                      style: textTheme.headlineSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Daftar logbook yang sudah kamu validasi',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: AppColors.blueGrey,
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Stats Bar
+                _buildStatsBar(textTheme),
+
+                const SizedBox(height: 20),
+
+                // Filter Chips
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: _filters.map((filter) {
+                      final isSelected = _selectedFilter == filter;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: _FilterChip(
+                          label: filter,
+                          isSelected: isSelected,
+                          onTap: () {
+                            setState(() => _selectedFilter = filter);
+                          },
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // List
+                Expanded(
+                  child: items.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.inbox_rounded,
+                                size: 64,
+                                color: Colors.white.withOpacity(0.3),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Tidak ada riwayat',
+                                style: textTheme.bodyLarge?.copyWith(
+                                  color: Colors.white.withOpacity(0.5),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.separated(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.only(bottom: 100),
+                          itemCount: items.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final item = items[index];
+                            return _HistoryCard(
+                              item: item,
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        LogbookValidationDetailScreen(
+                                          item: item,
+                                        ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

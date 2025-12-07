@@ -6,6 +6,8 @@ import 'package:provider/provider.dart';
 import '../../auth/data/auth_provider.dart';
 
 import '../../../app/app_colors.dart';
+import 'dosen_history_screen.dart';
+import 'logbook_validation_list_screen.dart';
 
 class DosenDashboardContent extends StatefulWidget {
   const DosenDashboardContent({super.key});
@@ -262,11 +264,35 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
           const SizedBox(height: 20),
           Row(
             children: [
-              _buildMiniStat('Disetujui', '12', AppColors.greenArrow),
+              _buildMiniStat(
+                context,
+                'Disetujui',
+                '12',
+                AppColors.greenArrow,
+                () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          const DosenHistoryScreen(initialFilter: 'Disetujui'),
+                    ),
+                  );
+                },
+              ),
               const SizedBox(width: 12),
-              _buildMiniStat('Revisi', '3', Colors.orange),
+              _buildMiniStat(context, 'Revisi', '3', Colors.orange, () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        const DosenHistoryScreen(initialFilter: 'Revisi'),
+                  ),
+                );
+              }),
               const SizedBox(width: 12),
-              _buildMiniStat('Mahasiswa', '8', Colors.white),
+              _buildMiniStat(context, 'Mahasiswa', '8', AppColors.blueBook, () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Fitur belum tersedia')),
+                );
+              }),
             ],
           ),
         ],
@@ -274,33 +300,45 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
     );
   }
 
-  Widget _buildMiniStat(String label, String value, Color color) {
+  Widget _buildMiniStat(
+    BuildContext context,
+    String label,
+    String value,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.15),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: onTap,
           borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          children: [
-            Text(
-              value,
-              style: TextStyle(
-                color: color,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-              ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
+            child: Column(
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: AppColors.navy.withOpacity(0.6),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
-                fontSize: 11,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -338,18 +376,37 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
                 icon: Icons.fact_check_rounded,
                 label: 'Validasi',
                 color: AppColors.blueBook,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const LogbookValidationListScreen(),
+                    ),
+                  );
+                },
               ),
               const SizedBox(width: 12),
               _buildActionButton(
                 icon: Icons.history_rounded,
                 label: 'Riwayat',
                 color: AppColors.navy,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const DosenHistoryScreen(),
+                    ),
+                  );
+                },
               ),
               const SizedBox(width: 12),
               _buildActionButton(
                 icon: Icons.people_rounded,
                 label: 'Mahasiswa',
                 color: AppColors.greenArrow,
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Fitur belum tersedia')),
+                  );
+                },
               ),
             ],
           ),
@@ -362,27 +419,32 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
     required IconData icon,
     required String label,
     required Color color,
+    required VoidCallback onTap,
   }) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.08),
+      child: Material(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: onTap,
           borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              children: [
+                Icon(icon, color: color, size: 28),
+                const SizedBox(height: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
