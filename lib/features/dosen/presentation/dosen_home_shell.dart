@@ -20,11 +20,10 @@ class _DosenHomeShellState extends State<DosenHomeShell> {
   @override
   void initState() {
     super.initState();
-    // urutan halaman untuk tiap tab
     _pages = const [
-      DosenMainScreen(), // dashboard dosen
-      DosenHistoryScreen(), // riwayat / validasi logbook
-      DosenProfileScreen(), // profil dosen
+      DosenMainScreen(),
+      DosenHistoryScreen(),
+      DosenProfileScreen(),
     ];
   }
 
@@ -68,22 +67,74 @@ class _DosenHomeShellState extends State<DosenHomeShell> {
             fontSize: 12,
           ),
           elevation: 0,
-          items: const [
+          items: [
             BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard_rounded),
+              icon: _GradientIcon(
+                icon: Icons.dashboard_rounded,
+                isSelected: _currentIndex == 0,
+                gradient: const LinearGradient(
+                  colors: [AppColors.blueBook, AppColors.greenArrow],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
               label: 'Dashboard',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.history_rounded),
+              icon: _GradientIcon(
+                icon: Icons.history_rounded,
+                isSelected: _currentIndex == 1,
+                gradient: const LinearGradient(
+                  colors: [AppColors.navyDark, AppColors.blueBook],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
               label: 'History',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person_rounded),
+              icon: _GradientIcon(
+                icon: Icons.person_rounded,
+                isSelected: _currentIndex == 2,
+                gradient: const LinearGradient(
+                  colors: [AppColors.navy, AppColors.greenArrow],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
               label: 'Profil',
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Widget icon dengan gradient untuk navbar
+class _GradientIcon extends StatelessWidget {
+  const _GradientIcon({
+    required this.icon,
+    required this.isSelected,
+    required this.gradient,
+  });
+
+  final IconData icon;
+  final bool isSelected;
+  final LinearGradient gradient;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isSelected) {
+      return Icon(icon, size: 24, color: AppColors.blueGrey);
+    }
+
+    return ShaderMask(
+      shaderCallback: (Rect bounds) {
+        return gradient.createShader(bounds);
+      },
+      blendMode: BlendMode.srcIn,
+      child: Icon(icon, size: 26, color: Colors.white),
     );
   }
 }
