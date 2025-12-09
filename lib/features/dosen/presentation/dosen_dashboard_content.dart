@@ -4,6 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:provider/provider.dart';
 import '../../auth/data/auth_provider.dart';
+import '../data/logbook_validation_service.dart';
+import '../data/dashboard_stats.dart';
+import '../data/logbook_validation_models.dart';
 
 import '../../../app/app_colors.dart';
 
@@ -24,6 +27,8 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
   String _nama = 'User';
   String _nip = '';
   bool _isLoading = true;
+  final LogbookValidationService _validationService =
+      LogbookValidationService();
 
   @override
   void initState() {
@@ -178,12 +183,6 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
               _buildStatsCard(textTheme),
 
               const SizedBox(height: 20),
-
-              // Quick Actions
-              _buildQuickActions(textTheme),
-
-              const SizedBox(height: 20),
-
               // Recent Activity
               _buildRecentActivity(textTheme),
             ],
@@ -194,87 +193,132 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
   }
 
   Widget _buildStatsCard(TextTheme textTheme) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF2FB1E3), Color(0xFF2454B5)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.25),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              ScaleTransition(
-                scale: _pulseAnimation,
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.2),
-                  ),
-                  child: const Icon(
-                    Icons.assignment_turned_in_rounded,
-                    color: Colors.white,
-                    size: 26,
-                  ),
-                ),
+    final user = FirebaseAuth.instance.currentUser;
+    final authProvider = context.watch<AuthProvider>();
+    final isMentor = authProvider.isMentor;
+
+    if (user == null) {
+      return const SizedBox.shrink();
+    }
+
+    return StreamBuilder<DashboardStats>(
+      stream: _validationService.getDashboardStats(user.uid, isMentor),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF2FB1E3), Color(0xFF2454B5)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Logbook Menunggu',
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withOpacity(0.9),
+            ),
+            child: const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            ),
+          );
+        }
+
+        final stats = snapshot.data ?? DashboardStats.empty();
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF2FB1E3), Color(0xFF2454B5)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.25),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  ScaleTransition(
+                    scale: _pulseAnimation,
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.2),
+                      ),
+                      child: const Icon(
+                        Icons.assignment_turned_in_rounded,
+                        color: Colors.white,
+                        size: 26,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    TweenAnimationBuilder<int>(
-                      tween: IntTween(begin: 0, end: 5),
-                      duration: const Duration(milliseconds: 800),
-                      builder: (context, value, _) {
-                        return Text(
-                          '$value entri',
-                          style: textTheme.headlineMedium?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Total Logbook',
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: Colors.white.withOpacity(0.9),
                           ),
-                        );
-                      },
+                        ),
+                        const SizedBox(height: 4),
+                        TweenAnimationBuilder<int>(
+                          tween: IntTween(begin: 0, end: stats.totalLogbooks),
+                          duration: const Duration(milliseconds: 800),
+                          builder: (context, value, _) {
+                            return Text(
+                              '$value entri',
+                              style: textTheme.headlineMedium?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  _buildMiniStat(
+                    'Disetujui',
+                    '${stats.approvedCount}',
+                    AppColors.greenArrow,
+                  ),
+                  const SizedBox(width: 12),
+                  _buildMiniStat(
+                    'Revisi',
+                    '${stats.revisionCount}',
+                    Colors.orange,
+                  ),
+                  const SizedBox(width: 12),
+                  _buildMiniStat(
+                    'Mahasiswa',
+                    '${stats.studentCount}',
+                    Colors.white,
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              _buildMiniStat('Disetujui', '12', AppColors.greenArrow),
-              const SizedBox(width: 12),
-              _buildMiniStat('Revisi', '3', Colors.orange),
-              const SizedBox(width: 12),
-              _buildMiniStat('Mahasiswa', '8', Colors.white),
-            ],
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -310,62 +354,6 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
     );
   }
 
-  Widget _buildQuickActions(TextTheme textTheme) {
-    final authProvider = context.watch<AuthProvider>();
-    final isMentor = authProvider.isMentor;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Aksi Cepat',
-            style: textTheme.titleMedium?.copyWith(
-              color: AppColors.navyDark,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              _buildActionButton(
-                icon: Icons.fact_check_rounded,
-                label: 'Validasi',
-                color: AppColors.blueBook,
-              ),
-              const SizedBox(width: 12),
-              _buildActionButton(
-                icon: Icons.history_rounded,
-                label: 'Riwayat',
-                color: AppColors.navy,
-              ),
-              const SizedBox(width: 12),
-              // Conditional: Mentor shows "Perusahaan", Dosen shows "Akademik"
-              _buildActionButton(
-                icon: isMentor ? Icons.business_rounded : Icons.school_rounded,
-                label: isMentor ? 'Perusahaan' : 'Akademik',
-                color: AppColors.greenArrow,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildActionButton({
     required IconData icon,
     required String label,
@@ -397,56 +385,116 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
   }
 
   Widget _buildRecentActivity(TextTheme textTheme) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 6),
-          ),
-        ],
+    final user = FirebaseAuth.instance.currentUser;
+    final authProvider = context.watch<AuthProvider>();
+    final isMentor = authProvider.isMentor;
+
+    if (user == null) {
+      return const SizedBox.shrink();
+    }
+
+    return StreamBuilder<List<LogbookValidationItem>>(
+      stream: _validationService.getRecentActivities(
+        user.uid,
+        isMentor,
+        limit: 5,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Aktivitas Terbaru',
-            style: textTheme.titleMedium?.copyWith(
-              color: AppColors.navyDark,
-              fontWeight: FontWeight.w700,
-            ),
+      builder: (context, snapshot) {
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          _buildActivityItem(
-            icon: Icons.check_circle_outline,
-            title: 'Logbook disetujui',
-            subtitle: 'Kayla - Memonitor ketua',
-            time: 'Baru saja',
-            color: AppColors.greenArrow,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Aktivitas Terbaru',
+                style: textTheme.titleMedium?.copyWith(
+                  color: AppColors.navyDark,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (snapshot.connectionState == ConnectionState.waiting)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(20.0),
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              else if (snapshot.hasError)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Text(
+                      'Gagal memuat aktivitas',
+                      style: textTheme.bodySmall?.copyWith(color: Colors.grey),
+                    ),
+                  ),
+                )
+              else if (!snapshot.hasData || snapshot.data!.isEmpty)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Text(
+                      'Belum ada aktivitas',
+                      style: textTheme.bodySmall?.copyWith(color: Colors.grey),
+                    ),
+                  ),
+                )
+              else
+                ...snapshot.data!.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  return Column(
+                    children: [
+                      if (index > 0) const SizedBox(height: 12),
+                      _buildActivityItemFromLogbook(item),
+                    ],
+                  );
+                }).toList(),
+            ],
           ),
-          const SizedBox(height: 12),
-          _buildActivityItem(
-            icon: Icons.edit_note_rounded,
-            title: 'Logbook baru',
-            subtitle: 'Jaden - Membuat laporan',
-            time: '1 jam lalu',
-            color: AppColors.blueBook,
-          ),
-          const SizedBox(height: 12),
-          _buildActivityItem(
-            icon: Icons.replay_rounded,
-            title: 'Revisi diminta',
-            subtitle: 'Saria - Analisis data',
-            time: '3 jam lalu',
-            color: Colors.orange,
-          ),
-        ],
-      ),
+        );
+      },
+    );
+  }
+
+  Widget _buildActivityItemFromLogbook(LogbookValidationItem item) {
+    IconData icon;
+    String title;
+    Color color;
+
+    if (item.isApproved) {
+      icon = Icons.check_circle_outline;
+      title = 'Logbook disetujui';
+      color = AppColors.greenArrow;
+    } else if (item.isRevision) {
+      icon = Icons.replay_rounded;
+      title = 'Revisi diminta';
+      color = Colors.orange;
+    } else {
+      icon = Icons.edit_note_rounded;
+      title = 'Logbook baru';
+      color = AppColors.blueBook;
+    }
+
+    return _buildActivityItem(
+      icon: icon,
+      title: title,
+      subtitle: '${item.studentName} - ${item.title}',
+      time: item.dateLabel,
+      color: color,
     );
   }
 

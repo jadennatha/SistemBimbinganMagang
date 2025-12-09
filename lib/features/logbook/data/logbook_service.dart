@@ -92,9 +92,12 @@ class LogbookService {
     return _firestore
         .collection('logbooks')
         .where('studentId', isEqualTo: studentId)
-        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
-        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
-        .orderBy('date', descending: true)
+        .where(
+          'createdAt',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(startDate),
+        )
+        .where('createdAt', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs
@@ -214,5 +217,25 @@ class LogbookService {
     } catch (e) {
       throw Exception('Gagal mengupdate status: $e');
     }
+  }
+
+  // Get recent logbooks for supervisor (limited)
+  Stream<List<LogbookModel>> getRecentLogbooksBySupervisorId(
+    String supervisorId,
+    bool isMentor, {
+    int limit = 5,
+  }) {
+    final field = isMentor ? 'mentorId' : 'dosenId';
+    return _firestore
+        .collection('logbooks')
+        .where(field, isEqualTo: supervisorId)
+        .orderBy('createdAt', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => LogbookModel.fromFirestore(doc))
+              .toList();
+        });
   }
 }

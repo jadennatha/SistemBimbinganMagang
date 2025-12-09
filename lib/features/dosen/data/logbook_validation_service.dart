@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../logbook/data/logbook_model.dart';
 import '../../logbook/data/logbook_service.dart';
 import 'logbook_validation_models.dart';
+import 'dashboard_stats.dart';
 
 /// Service untuk mengelola validasi logbook oleh dosen/mentor
 class LogbookValidationService {
@@ -120,5 +121,65 @@ class LogbookValidationService {
   /// Get logbook detail by ID
   Future<LogbookModel?> getLogbookDetail(String logbookId) async {
     return await _logbookService.getLogbookById(logbookId);
+  }
+
+  /// Get dashboard statistics
+  Stream<DashboardStats> getDashboardStats(String supervisorId, bool isMentor) {
+    return _logbookService
+        .getLogbooksBySupervisorId(supervisorId, isMentor)
+        .map((logbooks) {
+          int approvedCount = 0;
+          int revisionCount = 0;
+          int pendingCount = 0;
+          final Set<String> uniqueStudents = {};
+
+          for (final logbook in logbooks) {
+            // Count unique students
+            uniqueStudents.add(logbook.studentId);
+
+            // Count by status
+            final status = isMentor
+                ? logbook.statusMentor
+                : logbook.statusDosen;
+            switch (status.toLowerCase()) {
+              case 'approved':
+                approvedCount++;
+                break;
+              case 'rejected':
+                revisionCount++;
+                break;
+              case 'pending':
+              default:
+                pendingCount++;
+                break;
+            }
+          }
+
+          return DashboardStats(
+            totalLogbooks: logbooks.length,
+            approvedCount: approvedCount,
+            revisionCount: revisionCount,
+            pendingCount: pendingCount,
+            studentCount: uniqueStudents.length,
+          );
+        });
+  }
+
+  /// Get recent logbooks for dashboard
+  Stream<List<LogbookValidationItem>> getRecentActivities(
+    String supervisorId,
+    bool isMentor, {
+    int limit = 5,
+  }) {
+    return _logbookService
+        .getRecentLogbooksBySupervisorId(supervisorId, isMentor, limit: limit)
+        .asyncMap((logbooks) async {
+          final items = <LogbookValidationItem>[];
+          for (final logbook in logbooks) {
+            final item = await _convertToValidationItem(logbook, isMentor);
+            items.add(item);
+          }
+          return items;
+        });
   }
 }

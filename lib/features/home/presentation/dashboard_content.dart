@@ -300,11 +300,13 @@ class _ActivityCard extends StatelessWidget {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
+
+    // Normalize logDate to date-only (remove time component)
     final logDate = DateTime(date.year, date.month, date.day);
 
-    if (logDate == today) {
+    if (logDate.isAtSameMomentAs(today)) {
       return 'Hari ini';
-    } else if (logDate == yesterday) {
+    } else if (logDate.isAtSameMomentAs(yesterday)) {
       return 'Kemarin';
     } else {
       final diff = today.difference(logDate).inDays;
@@ -402,7 +404,7 @@ class _ActivityCard extends StatelessWidget {
                         ),
                         child: _ActivityItemFromLogbook(
                           logbook: logbook,
-                          timeLabel: _getTimeLabel(logbook.createdAt),
+                          timeLabel: _getTimeLabel(logbook.date),
                         ),
                       ),
                     ),

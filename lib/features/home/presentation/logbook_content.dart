@@ -178,16 +178,25 @@ class _LogbookContentState extends State<LogbookContent>
   Stream<List<LogbookModel>> _getFilteredLogbooks() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
+
+    // Bulan ini: dari tanggal 1 sampai hari terakhir bulan
+    final monthStart = DateTime(now.year, now.month, 1);
+    final monthEnd = DateTime(
+      now.year,
+      now.month + 1,
+      0,
+    ); // Hari ke-0 bulan depan = hari terakhir bulan ini
+
     final weekStart = today.subtract(Duration(days: today.weekday - 1));
     final weekEnd = weekStart.add(const Duration(days: 6));
 
     switch (_filterType) {
-      case 'hari_ini':
+      case 'bulan_ini':
         return _logbookService
             .getLogbooksByDateRange(
               _studentId,
-              today,
-              today.add(const Duration(days: 1)),
+              monthStart,
+              monthEnd.add(const Duration(days: 1)),
             )
             .map((logbooks) => logbooks.toList());
       case 'minggu_ini':
@@ -439,15 +448,15 @@ class _FilterChipsRow extends StatelessWidget {
     return Row(
       children: [
         _FilterChip(
-          label: 'Hari ini',
-          selected: selectedFilter == 'hari_ini',
-          onTap: () => onFilterChanged('hari_ini'),
-        ),
-        const SizedBox(width: 8),
-        _FilterChip(
           label: 'Minggu ini',
           selected: selectedFilter == 'minggu_ini',
           onTap: () => onFilterChanged('minggu_ini'),
+        ),
+        const SizedBox(width: 8),
+        _FilterChip(
+          label: 'Bulan ini',
+          selected: selectedFilter == 'bulan_ini',
+          onTap: () => onFilterChanged('bulan_ini'),
         ),
         const SizedBox(width: 8),
         _FilterChip(
@@ -504,9 +513,29 @@ class _LogItemClickable extends StatelessWidget {
 
   const _LogItemClickable({required this.logbook, required this.onTap});
 
+  // Helper method untuk menentukan warna berdasarkan status
+  Color _getIconColor() {
+    final dosenStatus = logbook.statusDosen.toLowerCase();
+    final mentorStatus = logbook.statusMentor.toLowerCase();
+
+    // Jika salah satu rejected, tampilkan merah
+    if (dosenStatus == 'rejected') {
+      return Colors.red;
+    }
+
+    // Jika keduanya approved, tampilkan hijau
+    if (dosenStatus == 'approved') {
+      return AppColors.greenArrow;
+    }
+
+    // Default (pending), tampilkan biru
+    return AppColors.blueBook;
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    final iconColor = _getIconColor();
 
     return GestureDetector(
       onTap: onTap,
@@ -524,14 +553,10 @@ class _LogItemClickable extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.blueBook.withOpacity(0.12),
+                color: iconColor.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(
-                Icons.note_alt_outlined,
-                size: 20,
-                color: AppColors.blueBook,
-              ),
+              child: Icon(Icons.note_alt_outlined, size: 20, color: iconColor),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -1006,26 +1031,37 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
       }
     }
 
-    // Validasi: Cek apakah tanggal sudah ada di logbook
+    // Validasi: Cek apakah tanggal sudah ada di logbook dengan status approved atau pending
     try {
       final existingLogbooks = await widget.logbookService
           .getLogbooksByDateRange(widget.studentId, selectedDate, selectedDate)
           .first;
 
-      // Filter untuk memastikan hanya tanggal yang sama persis
-      final exactDateLogbooks = existingLogbooks.where((logbook) {
+      // Filter untuk tanggal yang sama persis dengan status approved atau pending
+      final conflictingLogbooks = existingLogbooks.where((logbook) {
         final logbookDate = DateTime(
           logbook.date.year,
           logbook.date.month,
           logbook.date.day,
         );
-        return logbookDate.isAtSameMomentAs(selectedDate);
+
+        // Cek apakah tanggal sama
+        if (!logbookDate.isAtSameMomentAs(selectedDate)) {
+          return false;
+        }
+
+        // Cek status dosen dan mentor
+        final dosenStatus = logbook.statusDosen.toLowerCase();
+        final mentorStatus = logbook.statusMentor.toLowerCase();
+
+        // Logbook conflict jika salah satu status adalah approved atau pending
+        return (dosenStatus == 'approved' || dosenStatus == 'pending');
       }).toList();
 
-      if (exactDateLogbooks.isNotEmpty) {
+      if (conflictingLogbooks.isNotEmpty) {
         if (mounted) {
           _showErrorMessage(
-            'Logbook untuk tanggal ini sudah ada. Silakan tunggu proses verifikasi selesai.',
+            'Logbook untuk tanggal ini sudah ada dengan status approved/pending. Silakan tunggu proses verifikasi selesai atau pilih tanggal lain.',
           );
         }
         return;

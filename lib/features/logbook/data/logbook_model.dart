@@ -40,7 +40,7 @@ class LogbookModel {
       statusMentor: data['statusMentor'] ?? 'pending',
       dosenId: data['dosenId'] ?? '',
       mentorId: data['mentorId'] ?? '',
-      createdAt: DateTime.now()
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 
