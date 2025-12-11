@@ -148,7 +148,6 @@ class _LogbookFormDialogState extends State<LogbookFormDialog> {
               judulKegiatan: _judulController.text,
               komentar: widget.initialLogbook?.komentar ?? 'pending',
               statusDosen: widget.initialLogbook?.statusDosen ?? 'pending',
-              statusMentor: widget.initialLogbook?.statusMentor ?? 'pending',
               dosenId: widget.dosenId,
               mentorId: widget.mentorId,
               createdAt: widget.initialLogbook?.createdAt ?? DateTime.now(),

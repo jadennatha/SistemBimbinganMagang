@@ -92,12 +92,9 @@ class LogbookService {
     return _firestore
         .collection('logbooks')
         .where('studentId', isEqualTo: studentId)
-        .where(
-          'createdAt',
-          isGreaterThanOrEqualTo: Timestamp.fromDate(startDate),
-        )
-        .where('createdAt', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
-        .orderBy('createdAt', descending: true)
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+        .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
+        .orderBy('date', descending: true)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs

@@ -35,9 +35,9 @@ class LogbookValidationService {
     }
 
     // Get status based on role
-    final status = isMentor
-        ? statusFromString(logbook.statusMentor)
-        : statusFromString(logbook.statusDosen);
+    // Mentor hanya monitoring, jadi lihat status dosen
+    // Dosen melakukan validasi, jadi lihat status dosen
+    final status = statusFromString(logbook.statusDosen);
 
     return LogbookValidationItem(
       id: logbook.id ?? '',
@@ -79,9 +79,7 @@ class LogbookValidationService {
           int approvedCount = 0;
 
           for (final logbook in logbooks) {
-            final status = isMentor
-                ? logbook.statusMentor
-                : logbook.statusDosen;
+            final status = logbook.statusDosen;
             switch (status.toLowerCase()) {
               case 'approved':
                 approvedCount++;
@@ -138,9 +136,7 @@ class LogbookValidationService {
             uniqueStudents.add(logbook.studentId);
 
             // Count by status
-            final status = isMentor
-                ? logbook.statusMentor
-                : logbook.statusDosen;
+            final status = logbook.statusDosen;
             switch (status.toLowerCase()) {
               case 'approved':
                 approvedCount++;

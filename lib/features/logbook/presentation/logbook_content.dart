@@ -282,10 +282,7 @@ class _LogbookContentState extends State<LogbookContent> {
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildStatusChip('Dosen', logbook.statusDosen),
-                _buildStatusChip('Mentor', logbook.statusMentor),
-              ],
+              children: [_buildStatusChip('Dosen', logbook.statusDosen)],
             ),
           ],
         ),

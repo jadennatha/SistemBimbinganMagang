@@ -7,7 +7,6 @@ class LogbookModel {
   final String activity;
   final String komentar;
   final String statusDosen;
-  final String statusMentor;
   final String dosenId;
   final String mentorId;
   final String judulKegiatan;
@@ -21,7 +20,6 @@ class LogbookModel {
     required this.judulKegiatan,
     this.komentar = '',
     this.statusDosen = 'pending',
-    this.statusMentor = 'pending',
     required this.dosenId,
     required this.mentorId,
     required this.createdAt,
@@ -37,7 +35,6 @@ class LogbookModel {
       judulKegiatan: data['judulKegiatan'] ?? '',
       komentar: data['komentar'] ?? '',
       statusDosen: data['statusDosen'] ?? 'pending',
-      statusMentor: data['statusMentor'] ?? 'pending',
       dosenId: data['dosenId'] ?? '',
       mentorId: data['mentorId'] ?? '',
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
@@ -52,7 +49,6 @@ class LogbookModel {
       'judulKegiatan': judulKegiatan,
       'komentar': komentar,
       'statusDosen': statusDosen,
-      'statusMentor': statusMentor,
       'dosenId': dosenId,
       'mentorId': mentorId,
       'createdAt': Timestamp.fromDate(createdAt),
@@ -67,7 +63,6 @@ class LogbookModel {
     String? judulKegiatan,
     String? komentar,
     String? statusDosen,
-    String? statusMentor,
     String? dosenId,
     String? mentorId,
   }) {
@@ -79,7 +74,6 @@ class LogbookModel {
       judulKegiatan: judulKegiatan ?? this.judulKegiatan,
       komentar: komentar ?? this.komentar,
       statusDosen: statusDosen ?? this.statusDosen,
-      statusMentor: statusMentor ?? this.statusMentor,
       dosenId: dosenId ?? this.dosenId,
       mentorId: mentorId ?? this.mentorId,
       createdAt: createdAt,

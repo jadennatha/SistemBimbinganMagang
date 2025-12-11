@@ -271,81 +271,103 @@ class _LogbookValidationDetailScreenState
 
                     const SizedBox(height: 24),
 
-                    // hanya tampil kalau masih menunggu (pending)
-                    if (widget.item.isWaiting) ...[
-                      Text(
-                        'Tindakan',
-                        style: t.titleMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
+                    // hanya tampil kalau masih menunggu (pending) DAN user bukan mentor
+                    Builder(
+                      builder: (context) {
+                        final authProvider = context.watch<AuthProvider>();
+                        final isMentor = authProvider.isMentor;
 
-                      Row(
-                        children: [
-                          Expanded(
-                            child: SizedBox(
-                              height: 46,
-                              child: ElevatedButton(
-                                onPressed: _isLoading
-                                    ? null
-                                    : () => _showRevisionSheet(context),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.orange.shade600,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
+                        if (widget.item.isWaiting && !isMentor) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Tindakan',
+                                style: t.titleMedium?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
                                 ),
-                                child: _isLoading
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                Colors.white,
-                                              ),
-                                        ),
-                                      )
-                                    : const Text('Minta revisi'),
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: SizedBox(
-                              height: 46,
-                              child: ElevatedButton(
-                                onPressed: _isLoading ? null : _handleApprove,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.greenArrow,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
+                              const SizedBox(height: 10),
+
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: SizedBox(
+                                      height: 46,
+                                      child: ElevatedButton(
+                                        onPressed: _isLoading
+                                            ? null
+                                            : () => _showRevisionSheet(context),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                              Colors.orange.shade600,
+                                          foregroundColor: Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                          ),
+                                        ),
+                                        child: _isLoading
+                                            ? const SizedBox(
+                                                width: 20,
+                                                height: 20,
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                        Color
+                                                      >(Colors.white),
+                                                ),
+                                              )
+                                            : const Text('Minta revisi'),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                                child: _isLoading
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                Colors.white,
-                                              ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: SizedBox(
+                                      height: 46,
+                                      child: ElevatedButton(
+                                        onPressed: _isLoading
+                                            ? null
+                                            : _handleApprove,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.greenArrow,
+                                          foregroundColor: Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                          ),
                                         ),
-                                      )
-                                    : const Text('Setujui'),
+                                        child: _isLoading
+                                            ? const SizedBox(
+                                                width: 20,
+                                                height: 20,
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                        Color
+                                                      >(Colors.white),
+                                                ),
+                                              )
+                                            : const Text('Setujui'),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                            ],
+                          );
+                        }
+
+                        // Jika mentor atau tidak waiting, sembunyikan tombol
+                        return const SizedBox.shrink();
+                      },
+                    ),
                   ],
                 ),
               ),

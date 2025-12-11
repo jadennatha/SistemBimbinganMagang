@@ -404,7 +404,7 @@ class _ActivityCard extends StatelessWidget {
                         ),
                         child: _ActivityItemFromLogbook(
                           logbook: logbook,
-                          timeLabel: _getTimeLabel(logbook.date),
+                          timeLabel: _getTimeLabel(logbook.createdAt),
                         ),
                       ),
                     ),
@@ -784,14 +784,6 @@ class _LogbookDetailDialog extends StatelessWidget {
                           label: 'Dosen',
                           status: logbook.statusDosen,
                           color: _getStatusColor(logbook.statusDosen),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _StatusBadge(
-                          label: 'Mentor',
-                          status: logbook.statusMentor,
-                          color: _getStatusColor(logbook.statusMentor),
                         ),
                       ),
                     ],

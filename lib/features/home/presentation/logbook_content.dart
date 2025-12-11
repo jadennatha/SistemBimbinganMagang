@@ -23,6 +23,7 @@ class _LogbookContentState extends State<LogbookContent>
   late String _mentorId;
   bool _isUserInitialized = false;
   String _filterType = 'hari_ini'; // hari_ini, minggu_ini, semua
+  String _statusFilter = 'semua'; // semua, accepted, rejected, pending
 
   @override
   void initState() {
@@ -213,6 +214,33 @@ class _LogbookContentState extends State<LogbookContent>
     }
   }
 
+  // Filter berdasarkan status
+  List<LogbookModel> _filterByStatus(List<LogbookModel> logbooks) {
+    if (_statusFilter == 'semua') {
+      return logbooks;
+    }
+
+    return logbooks.where((logbook) {
+      final dosenStatus = logbook.statusDosen.toLowerCase();
+
+      switch (_statusFilter) {
+        case 'accepted':
+          // Accepted: keduanya approved
+          return dosenStatus == 'approved';
+        case 'rejected':
+          // Rejected: salah satu rejected
+          return dosenStatus == 'rejected';
+        case 'pending':
+          // Pending: tidak rejected dan tidak keduanya approved
+          final isRejected = dosenStatus == 'rejected';
+          final isAccepted = dosenStatus == 'approved';
+          return !isRejected && !isAccepted;
+        default:
+          return true;
+      }
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
@@ -312,6 +340,16 @@ class _LogbookContentState extends State<LogbookContent>
                     ),
                   ),
                   const SizedBox(height: 12),
+                  // Status Filter
+                  _StatusFilterChipsRow(
+                    selectedFilter: _statusFilter,
+                    onFilterChanged: (filter) {
+                      setState(() {
+                        _statusFilter = filter;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 12),
                   StreamBuilder<List<LogbookModel>>(
                     stream: _getFilteredLogbooks(),
                     builder: (context, snapshot) {
@@ -323,7 +361,9 @@ class _LogbookContentState extends State<LogbookContent>
                         return Center(child: Text('Error: ${snapshot.error}'));
                       }
 
-                      final logbooks = snapshot.data ?? [];
+                      // Apply status filter
+                      final allLogbooks = snapshot.data ?? [];
+                      final logbooks = _filterByStatus(allLogbooks);
 
                       if (logbooks.isEmpty) {
                         return Center(
@@ -469,6 +509,50 @@ class _FilterChipsRow extends StatelessWidget {
   }
 }
 
+class _StatusFilterChipsRow extends StatelessWidget {
+  final String selectedFilter;
+  final Function(String) onFilterChanged;
+
+  const _StatusFilterChipsRow({
+    required this.selectedFilter,
+    required this.onFilterChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _FilterChip(
+            label: 'Semua',
+            selected: selectedFilter == 'semua',
+            onTap: () => onFilterChanged('semua'),
+          ),
+          const SizedBox(width: 8),
+          _FilterChip(
+            label: 'Accepted',
+            selected: selectedFilter == 'accepted',
+            onTap: () => onFilterChanged('accepted'),
+          ),
+          const SizedBox(width: 8),
+          _FilterChip(
+            label: 'Rejected',
+            selected: selectedFilter == 'rejected',
+            onTap: () => onFilterChanged('rejected'),
+          ),
+          const SizedBox(width: 8),
+          _FilterChip(
+            label: 'Pending',
+            selected: selectedFilter == 'pending',
+            onTap: () => onFilterChanged('pending'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _FilterChip extends StatelessWidget {
   const _FilterChip({
     required this.label,
@@ -516,7 +600,6 @@ class _LogItemClickable extends StatelessWidget {
   // Helper method untuk menentukan warna berdasarkan status
   Color _getIconColor() {
     final dosenStatus = logbook.statusDosen.toLowerCase();
-    final mentorStatus = logbook.statusMentor.toLowerCase();
 
     // Jika salah satu rejected, tampilkan merah
     if (dosenStatus == 'rejected') {
@@ -667,14 +750,6 @@ class _LogbookDetailDialog extends StatelessWidget {
                           label: 'Dosen',
                           status: logbook.statusDosen,
                           color: _getStatusColor(logbook.statusDosen),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _StatusBadge(
-                          label: 'Mentor',
-                          status: logbook.statusMentor,
-                          color: _getStatusColor(logbook.statusMentor),
                         ),
                       ),
                     ],
@@ -1050,9 +1125,8 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
           return false;
         }
 
-        // Cek status dosen dan mentor
+        // Cek status dosen
         final dosenStatus = logbook.statusDosen.toLowerCase();
-        final mentorStatus = logbook.statusMentor.toLowerCase();
 
         // Logbook conflict jika salah satu status adalah approved atau pending
         return (dosenStatus == 'approved' || dosenStatus == 'pending');
@@ -1080,7 +1154,6 @@ class _LogbookEntryDialogState extends State<_LogbookEntryDialog> {
         activity: _aktivitasController.text,
         judulKegiatan: _judulController.text,
         statusDosen: 'pending',
-        statusMentor: 'pending',
         dosenId: widget.dosenId,
         mentorId: widget.mentorId,
         createdAt: now,
