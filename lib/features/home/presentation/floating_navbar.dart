@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../app/app_colors.dart';
+import '../../notification/presentation/notification_badge.dart';
 
 class FloatingNavBar extends StatelessWidget {
   const FloatingNavBar({
@@ -23,6 +24,12 @@ class FloatingNavBar extends StatelessWidget {
       label: 'Logbook',
       accent1: AppColors.navy,
       accent2: AppColors.blueBook,
+    ),
+    _NavItemData(
+      icon: Icons.notifications_rounded,
+      label: 'Notifikasi',
+      accent1: AppColors.blueBook,
+      accent2: AppColors.greenArrow,
     ),
     _NavItemData(
       icon: Icons.person_rounded,
@@ -141,6 +148,19 @@ class _NavItemState extends State<_NavItem>
         ? AppColors.navyDark
         : AppColors.blueGrey;
 
+    // Check if this is the notification tab (index 2)
+    final isNotificationTab = widget.data.label == 'Notifikasi';
+
+    Widget iconWidget = _ColoredIcon(
+      data: widget.data,
+      selected: widget.selected,
+    );
+
+    // Wrap notification icon with badge
+    if (isNotificationTab) {
+      iconWidget = NotificationBadge(child: iconWidget);
+    }
+
     return GestureDetector(
       onTap: widget.onTap,
       child: ScaleTransition(
@@ -148,7 +168,7 @@ class _NavItemState extends State<_NavItem>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _ColoredIcon(data: widget.data, selected: widget.selected),
+            iconWidget,
             const SizedBox(height: 4),
             Text(
               widget.data.label,

@@ -318,6 +318,14 @@ class _LogbookContentState extends State<LogbookContent>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(
+                    'Filter Logbook',
+                    style: t.titleMedium?.copyWith(
+                      color: AppColors.navyDark,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   _FilterChipsRow(
                     selectedFilter: _filterType,
                     onFilterChanged: (filter) {

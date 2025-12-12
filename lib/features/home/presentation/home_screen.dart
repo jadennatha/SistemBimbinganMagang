@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/app_colors.dart';
+import '../../../services/local_notification_service.dart';
+import '../../notification/presentation/notification_screen.dart';
 import 'dashboard_content.dart';
 import 'logbook_content.dart';
 import 'profile_content.dart';
@@ -16,6 +18,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    // Start listening for notifications when home screen loads
+    LocalNotificationService().startListening();
+  }
+
   void _onTabChanged(int index) {
     setState(() {
       _currentIndex = index;
@@ -29,6 +38,8 @@ class _HomeScreenState extends State<HomeScreen> {
       case 1:
         return const LogbookContent();
       case 2:
+        return const NotificationScreen();
+      case 3:
       default:
         return const ProfileContent();
     }
