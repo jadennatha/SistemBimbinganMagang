@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/app_colors.dart';
-import '../../../services/local_notification_service.dart';
+import '../../../core/services/local_notification_service.dart';
 import '../../notification/presentation/notification_screen.dart';
 import 'dashboard_content.dart';
 import 'logbook_content.dart';

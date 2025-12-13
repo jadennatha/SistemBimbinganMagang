@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../features/splash/presentation/splash_screen.dart';
 import '../features/onboarding/presentation/onboarding_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
-import '../features/home/presentation/home_screen.dart';
-import '../features/dosen/presentation/dosen_home_shell.dart';
+import '../features/mahasiswa/presentation/home_screen.dart';
+import '../features/pembimbing/presentation/dosen_home_shell.dart';
 
 class Routes {
   static const splash = '/';

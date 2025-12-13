@@ -5,8 +5,8 @@ import '../../../app/app_colors.dart';
 import '../../../app/routes.dart';
 import '../../auth/data/auth_provider.dart';
 import '../../onboarding/presentation/onboarding_screen.dart';
-import '../../home/presentation/home_screen.dart';
-import '../../dosen/presentation/dosen_home_shell.dart';
+import '../../mahasiswa/presentation/home_screen.dart';
+import '../../pembimbing/presentation/dosen_home_shell.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sistem_bimbingan_magang/app/app_colors.dart';
-import '../../../services/notification_service.dart';
-import '../../../models/notification_model.dart';
+import '../../../core/services/notification_service.dart';
+import '../../../core/models/notification_model.dart';
 import '../../logbook/data/logbook_service.dart';
 import 'logbook_detail_dialog.dart';
 

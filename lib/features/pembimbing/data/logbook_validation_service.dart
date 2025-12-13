@@ -3,8 +3,8 @@ import '../../logbook/data/logbook_model.dart';
 import '../../logbook/data/logbook_service.dart';
 import 'logbook_validation_models.dart';
 import 'dashboard_stats.dart';
-import '../../../services/notification_service.dart';
-import '../../../models/notification_model.dart';
+import '../../../core/services/notification_service.dart';
+import '../../../core/models/notification_model.dart';
 
 /// Service untuk mengelola validasi logbook oleh dosen/mentor
 class LogbookValidationService {

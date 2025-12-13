@@ -4,8 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../app/app_colors.dart';
 import '../../../app/routes.dart';
-import '../../../models/user_model.dart';
-import '../../../services/firestore_service.dart';
+import '../../../core/models/user_model.dart';
+import '../../../core/services/firestore_service.dart';
 
 class ProfileContent extends StatelessWidget {
   const ProfileContent({super.key});
@@ -184,8 +184,8 @@ class ProfileContent extends StatelessWidget {
                   user.role == 'mahasiswa'
                       ? 'Informasi Mahasiswa'
                       : (user.role == 'dosen'
-                          ? 'Informasi Akademik'
-                          : 'Informasi Perusahaan'),
+                            ? 'Informasi Akademik'
+                            : 'Informasi Perusahaan'),
                   style: textTheme.titleMedium?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -199,11 +199,11 @@ class ProfileContent extends StatelessWidget {
                     // JIKA MAHASISWA
                     if (user.role == 'mahasiswa') ...[
                       _ProfileRow(
-                        icon: Icons.numbers_rounded, 
+                        icon: Icons.numbers_rounded,
                         title: 'NIM',
                         value: user.nim ?? '-',
                       ),
-                      const SizedBox(height: 10,),
+                      const SizedBox(height: 10),
                       _ProfileRow(
                         icon: Icons.school_rounded,
                         title: 'Program studi',
@@ -217,7 +217,7 @@ class ProfileContent extends StatelessWidget {
                       ),
                       const SizedBox(height: 10),
                       _ProfileRow(
-                        icon: Icons.apartment_rounded, 
+                        icon: Icons.apartment_rounded,
                         title: 'Perusahaan Magang',
                         value: user.perusahaan ?? '-',
                       ),
@@ -228,7 +228,7 @@ class ProfileContent extends StatelessWidget {
                         value: user.posisi ?? '-',
                       ),
                       const SizedBox(height: 10),
-                      
+
                       // -- Menampilkan MENTOR (Fetch dari ID) --
                       _ProfileRow(
                         icon: Icons.business_rounded,
@@ -240,7 +240,7 @@ class ProfileContent extends StatelessWidget {
                       ),
 
                       const SizedBox(height: 10),
-                      
+
                       // -- Menampilkan DOSEN (Fetch dari ID) --
                       _ProfileRow(
                         icon: Icons.person_rounded,
@@ -322,7 +322,7 @@ class ProfileContent extends StatelessWidget {
 class _SectionCard extends StatelessWidget {
   const _SectionCard({required this.children});
   final List<Widget> children;
-  
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -347,7 +347,7 @@ class _ProfileRow extends StatelessWidget {
     // super.key,
     required this.icon,
     required this.title,
-    this.value,        // Tidak required lagi
+    this.value, // Tidak required lagi
     this.customWidget, // Tambahan untuk widget loading
   });
 
@@ -381,17 +381,17 @@ class _ProfileRow extends StatelessWidget {
                 style: textTheme.bodySmall?.copyWith(color: AppColors.blueGrey),
               ),
               const SizedBox(height: 2),
-              
+
               // Jika ada customWidget (misal loading nama dosen), pakai itu.
               // Jika tidak, pakai Text biasa.
-              customWidget ?? 
-              Text(
-                value ?? '-',
-                style: textTheme.bodyMedium?.copyWith(
-                  color: AppColors.navyDark,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              customWidget ??
+                  Text(
+                    value ?? '-',
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: AppColors.navyDark,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
             ],
           ),
         ),
@@ -418,9 +418,9 @@ class _UserNameFetcher extends StatelessWidget {
       return Text(
         fallbackText,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.navyDark,
-              fontWeight: FontWeight.w600,
-            ),
+          color: AppColors.navyDark,
+          fontWeight: FontWeight.w600,
+        ),
       );
     }
 
@@ -441,9 +441,9 @@ class _UserNameFetcher extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.navyDark,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: AppColors.navyDark,
+              fontWeight: FontWeight.w600,
+            ),
           );
         }
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../utils/validators.dart';
+import '../../../core/utils/validators.dart';
 import '../data/auth_provider.dart';
 import '../../../app/routes.dart';
 import '../../../app/app_colors.dart';

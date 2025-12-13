@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../../services/notification_service.dart';
+import '../../../core/services/notification_service.dart';
 
 /// Widget untuk menampilkan badge notifikasi dengan jumlah unread
 class NotificationBadge extends StatelessWidget {
