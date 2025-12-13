@@ -48,35 +48,21 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 350),
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeInCubic,
+        duration: const Duration(milliseconds: 250),
+        switchInCurve: Curves.easeOut,
+        switchOutCurve: Curves.easeIn,
         child: KeyedSubtree(
           key: ValueKey<int>(_currentIndex),
           child: _buildTabContent(),
         ),
         transitionBuilder: (Widget child, Animation<double> animation) {
-          // Combined fade + scale + subtle slide animation
+          // Smooth fade transition only - cleaner and less distracting
           return FadeTransition(
-            opacity: animation,
-            child: ScaleTransition(
-              scale: Tween<double>(begin: 0.95, end: 1.0).animate(
-                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-              ),
-              child: SlideTransition(
-                position:
-                    Tween<Offset>(
-                      begin: const Offset(0.0, 0.02),
-                      end: Offset.zero,
-                    ).animate(
-                      CurvedAnimation(
-                        parent: animation,
-                        curve: Curves.easeOutCubic,
-                      ),
-                    ),
-                child: child,
-              ),
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOut,
             ),
+            child: child,
           );
         },
       ),

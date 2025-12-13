@@ -5,10 +5,12 @@ import 'dosen_dashboard_content.dart';
 /// Dashboard utama untuk dosen.
 /// Menampilkan statistik dan aktivitas terbaru.
 class DosenMainScreen extends StatelessWidget {
-  const DosenMainScreen({super.key});
+  final VoidCallback? onProfileTap;
+
+  const DosenMainScreen({super.key, this.onProfileTap});
 
   @override
   Widget build(BuildContext context) {
-    return const DosenDashboardContent();
+    return DosenDashboardContent(onProfileTap: onProfileTap);
   }
 }

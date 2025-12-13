@@ -18,24 +18,23 @@ class DosenHomeShell extends StatefulWidget {
 class _DosenHomeShellState extends State<DosenHomeShell> {
   int _currentIndex = 0;
 
-  late final List<Widget> _pages;
-
-  @override
-  void initState() {
-    super.initState();
-    // urutan halaman untuk tiap tab
-    _pages = const [
-      DosenMainScreen(), // dashboard dosen
-      DosenHistoryScreen(), // riwayat / validasi logbook
-      DosenProfileScreen(), // profil dosen
-    ];
-  }
-
   void _onNavChanged(int index) {
     if (index == _currentIndex) return;
     setState(() {
       _currentIndex = index;
     });
+  }
+
+  Widget _buildCurrentPage() {
+    switch (_currentIndex) {
+      case 0:
+        return DosenMainScreen(onProfileTap: () => _onNavChanged(2));
+      case 1:
+        return const DosenHistoryScreen();
+      case 2:
+      default:
+        return const DosenProfileScreen();
+    }
   }
 
   @override
@@ -45,9 +44,25 @@ class _DosenHomeShellState extends State<DosenHomeShell> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      extendBody: true,
-      // IndexedStack supaya state tiap tab tetap tersimpan
-      body: IndexedStack(index: _currentIndex, children: _pages),
+      // AnimatedSwitcher for smooth tab transitions
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 250),
+        switchInCurve: Curves.easeOut,
+        switchOutCurve: Curves.easeIn,
+        child: KeyedSubtree(
+          key: ValueKey<int>(_currentIndex),
+          child: _buildCurrentPage(),
+        ),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return FadeTransition(
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOut,
+            ),
+            child: child,
+          );
+        },
+      ),
       // navbar melayang di bawah
       bottomNavigationBar: SafeArea(
         top: false,

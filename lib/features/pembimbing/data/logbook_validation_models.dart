@@ -103,10 +103,22 @@ LogbookStatus statusFromString(String status) {
   }
 }
 
-/// Helper function to format date label
+/// Helper function to format date label in Indonesian style
 String formatDateLabel(DateTime date) {
-  final now = DateTime.now();
-  final difference = now.difference(date);
+  const months = [
+    'Januari',
+    'Februari',
+    'Maret',
+    'April',
+    'Mei',
+    'Juni',
+    'Juli',
+    'Agustus',
+    'September',
+    'Oktober',
+    'November',
+    'Desember',
+  ];
 
-  return '${date.day}/${date.month}/${date.year}';
+  return '${date.day} ${months[date.month - 1]} ${date.year}';
 }

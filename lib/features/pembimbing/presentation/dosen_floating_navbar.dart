@@ -15,14 +15,14 @@ class DosenFloatingNavbar extends StatelessWidget {
 
   List<_NavItemData> get items => [
     const _NavItemData(
-      icon: Icons.dashboard_rounded,
-      label: 'Dashboard',
+      icon: Icons.grid_view_rounded,
+      label: 'Beranda',
       accent1: AppColors.blueBook,
       accent2: AppColors.greenArrow,
     ),
     _NavItemData(
-      icon: Icons.history_rounded,
-      label: isMentor ? 'Validasi' : 'History',
+      icon: Icons.menu_book_rounded,
+      label: isMentor ? 'Validasi' : 'Riwayat',
       accent1: AppColors.navy,
       accent2: AppColors.blueBook,
     ),

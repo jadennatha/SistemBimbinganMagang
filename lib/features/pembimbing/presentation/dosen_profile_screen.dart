@@ -99,17 +99,13 @@ class _DosenProfileScreenState extends State<DosenProfileScreen>
     final roleLabel = isMentor ? 'Mentor' : 'Dosen Pembimbing';
     final idLabel = isMentor ? 'ID Mentor' : 'NIP';
 
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
     return FadeTransition(
       opacity: _fadeAnimation,
       child: SafeArea(
         bottom: false,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 140),
           child: Column(
             children: [
               // Profile Header Card

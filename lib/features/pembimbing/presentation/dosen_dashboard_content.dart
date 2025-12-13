@@ -11,7 +11,9 @@ import '../data/logbook_validation_models.dart';
 import '../../../app/app_colors.dart';
 
 class DosenDashboardContent extends StatefulWidget {
-  const DosenDashboardContent({super.key});
+  final VoidCallback? onProfileTap;
+
+  const DosenDashboardContent({super.key, this.onProfileTap});
 
   @override
   State<DosenDashboardContent> createState() => _DosenDashboardContentState();
@@ -25,8 +27,6 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
   late final Animation<double> _pulseAnimation;
 
   String _nama = 'User';
-  String _nip = '';
-  bool _isLoading = true;
   final LogbookValidationService _validationService =
       LogbookValidationService();
 
@@ -70,17 +70,11 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
           final data = doc.data();
           setState(() {
             _nama = data?['nama'] ?? 'User';
-            _nip = data?['nip'] ?? '';
-            _isLoading = false;
           });
-        } else {
-          setState(() => _isLoading = false);
         }
       } catch (e) {
-        setState(() => _isLoading = false);
+        // Error handling
       }
-    } else {
-      setState(() => _isLoading = false);
     }
   }
 
@@ -105,10 +99,6 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
     final isMentor = authProvider.isMentor;
     final roleLabel = isMentor ? 'Mentor' : 'Dosen Pembimbing';
 
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
     return FadeTransition(
       opacity: _fadeAnimation,
       child: SafeArea(
@@ -116,56 +106,83 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
         bottom: false,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 32, 20, 100),
+          padding: const EdgeInsets.fromLTRB(20, 32, 20, 140),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
+              // Header - Centered layout like mahasiswa
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // Profile bubble (tappable to go to profile)
+                  GestureDetector(
+                    onTap: widget.onProfileTap,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF2FB1E3), Color(0xFF2454B5)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: CircleAvatar(
+                        radius: 26,
+                        backgroundColor: AppColors.background,
+                        child: Text(
+                          _nama.isNotEmpty ? _nama[0].toUpperCase() : 'D',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  // Name and role
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           _sapaan(),
-                          style: textTheme.bodyMedium?.copyWith(
+                          style: textTheme.bodySmall?.copyWith(
                             color: AppColors.blueGrey,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          _nama,
-                          style: textTheme.headlineSmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        if (_nip.isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            'NIP: $_nip',
-                            style: textTheme.bodySmall?.copyWith(
-                              color: AppColors.blueGrey,
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 6),
                         Row(
-                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
-                              Icons.verified,
-                              size: 14,
-                              color: AppColors.greenArrow,
+                            Flexible(
+                              child: Text(
+                                _nama,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: textTheme.titleLarge?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ),
-                            const SizedBox(width: 6),
-                            Text(
-                              roleLabel,
-                              style: textTheme.labelSmall?.copyWith(
-                                color: AppColors.greenArrow,
-                                fontWeight: FontWeight.w600,
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.greenArrow.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                roleLabel,
+                                style: textTheme.labelSmall?.copyWith(
+                                  color: AppColors.greenArrow,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 10,
+                                ),
                               ),
                             ),
                           ],
@@ -173,7 +190,6 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
                       ],
                     ),
                   ),
-                  _UserBubble(name: _nama),
                 ],
               ),
 
@@ -226,40 +242,56 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
 
         return Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(28),
             gradient: const LinearGradient(
-              colors: [Color(0xFF2FB1E3), Color(0xFF2454B5)],
+              colors: [Color(0xFF3B82F6), Color(0xFF1E40AF)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.25),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
+                color: const Color(0xFF3B82F6).withOpacity(0.4),
+                blurRadius: 24,
+                offset: const Offset(0, 12),
               ),
             ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Top row with animated icon and title
               Row(
                 children: [
+                  // Animated floating icon with glow
                   ScaleTransition(
                     scale: _pulseAnimation,
                     child: Container(
-                      width: 48,
-                      height: 48,
+                      width: 56,
+                      height: 56,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.2),
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withOpacity(0.3),
+                            Colors.white.withOpacity(0.1),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.white.withOpacity(0.2),
+                            blurRadius: 12,
+                            spreadRadius: 2,
+                          ),
+                        ],
                       ),
                       child: const Icon(
-                        Icons.assignment_turned_in_rounded,
+                        Icons.auto_stories_rounded,
                         color: Colors.white,
-                        size: 26,
+                        size: 28,
                       ),
                     ),
                   ),
@@ -271,20 +303,40 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
                         Text(
                           'Total Logbook',
                           style: textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withOpacity(0.85),
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
+                        // Animated counter with bounce effect
                         TweenAnimationBuilder<int>(
                           tween: IntTween(begin: 0, end: stats.totalLogbooks),
-                          duration: const Duration(milliseconds: 800),
+                          duration: const Duration(milliseconds: 1200),
+                          curve: Curves.easeOutCubic,
                           builder: (context, value, _) {
-                            return Text(
-                              '$value entri',
-                              style: textTheme.headlineMedium?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                              ),
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '$value',
+                                  style: textTheme.displaySmall?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w800,
+                                    height: 1,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 4),
+                                  child: Text(
+                                    'Entri',
+                                    style: textTheme.bodyLarge?.copyWith(
+                                      color: Colors.white.withOpacity(0.7),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             );
                           },
                         ),
@@ -293,25 +345,32 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
+              // Mini stat cards with staggered animation
               Row(
                 children: [
-                  _buildMiniStat(
+                  _buildAnimatedMiniStat(
                     'Disetujui',
-                    '${stats.approvedCount}',
-                    AppColors.greenArrow,
+                    stats.approvedCount,
+                    Icons.check_circle_rounded,
+                    const Color(0xFF10B981),
+                    0,
                   ),
-                  const SizedBox(width: 12),
-                  _buildMiniStat(
+                  const SizedBox(width: 10),
+                  _buildAnimatedMiniStat(
                     'Revisi',
-                    '${stats.revisionCount}',
-                    Colors.orange,
+                    stats.revisionCount,
+                    Icons.refresh_rounded,
+                    const Color(0xFFF59E0B),
+                    1,
                   ),
-                  const SizedBox(width: 12),
-                  _buildMiniStat(
+                  const SizedBox(width: 10),
+                  _buildAnimatedMiniStat(
                     'Mahasiswa',
-                    '${stats.studentCount}',
+                    stats.studentCount,
+                    Icons.people_rounded,
                     Colors.white,
+                    2,
                   ),
                 ],
               ),
@@ -322,34 +381,64 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
     );
   }
 
-  Widget _buildMiniStat(String label, String value, Color color) {
+  Widget _buildAnimatedMiniStat(
+    String label,
+    int value,
+    IconData icon,
+    Color color,
+    int index,
+  ) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          children: [
-            Text(
-              value,
-              style: TextStyle(
-                color: color,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.0, end: 1.0),
+        duration: Duration(milliseconds: 600 + (index * 150)),
+        curve: Curves.easeOutBack,
+        builder: (context, anim, child) {
+          return Transform.scale(
+            scale: anim,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.1),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                children: [
+                  Icon(icon, color: color, size: 20),
+                  const SizedBox(height: 8),
+                  TweenAnimationBuilder<int>(
+                    tween: IntTween(begin: 0, end: value),
+                    duration: Duration(milliseconds: 800 + (index * 100)),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, val, _) {
+                      return Text(
+                        '$val',
+                        style: TextStyle(
+                          color: color,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.75),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
-                fontSize: 11,
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -404,7 +493,7 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
           width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color(0xFFEFF4F7),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -426,12 +515,7 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
               ),
               const SizedBox(height: 16),
               if (snapshot.connectionState == ConnectionState.waiting)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(20.0),
-                    child: CircularProgressIndicator(),
-                  ),
-                )
+                const SizedBox.shrink()
               else if (snapshot.hasError)
                 Center(
                   child: Padding(
@@ -456,10 +540,21 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
                 ...snapshot.data!.asMap().entries.map((entry) {
                   final index = entry.key;
                   final item = entry.value;
+                  final isLast = index == snapshot.data!.length - 1;
                   return Column(
                     children: [
-                      if (index > 0) const SizedBox(height: 12),
-                      _buildActivityItemFromLogbook(item),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 14,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFDFEFD),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: _buildActivityItemFromLogbook(item),
+                      ),
+                      if (!isLast) const SizedBox(height: 10),
                     ],
                   );
                 }).toList(),
@@ -477,11 +572,11 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
 
     if (item.isApproved) {
       icon = Icons.check_circle_outline;
-      title = 'Logbook disetujui';
+      title = 'Logbook Disetujui';
       color = AppColors.greenArrow;
     } else if (item.isRevision) {
       icon = Icons.replay_rounded;
-      title = 'Revisi diminta';
+      title = 'Revisi Diminta';
       color = Colors.orange;
     } else {
       icon = Icons.edit_note_rounded;
@@ -508,19 +603,22 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        // Centered icon
         Container(
-          width: 34,
-          height: 34,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: color.withOpacity(0.06),
+            color: color.withOpacity(0.1),
           ),
-          child: Icon(icon, color: color, size: 18),
+          child: Center(child: Icon(icon, color: color, size: 20)),
         ),
         const SizedBox(width: 12),
+        // Content
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 title,
@@ -533,6 +631,8 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
               const SizedBox(height: 2),
               Text(
                 subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: AppColors.navy.withOpacity(0.6),
                   fontSize: 12,
@@ -541,46 +641,17 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
             ],
           ),
         ),
+        const SizedBox(width: 8),
+        // Date - centered with icon
         Text(
           time,
-          style: const TextStyle(color: AppColors.blueGrey, fontSize: 11),
-        ),
-      ],
-    );
-  }
-}
-
-class _UserBubble extends StatelessWidget {
-  const _UserBubble({required this.name});
-
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    final String initial = name.isNotEmpty ? name[0].toUpperCase() : 'D';
-
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: [Color(0xFF2FB1E3), Color(0xFF2454B5)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: CircleAvatar(
-        radius: 22,
-        backgroundColor: AppColors.background,
-        child: Text(
-          initial,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
+          style: TextStyle(
+            color: AppColors.blueGrey.withOpacity(0.8),
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
           ),
         ),
-      ),
+      ],
     );
   }
 }

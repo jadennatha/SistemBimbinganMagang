@@ -79,9 +79,7 @@ class _DosenHistoryScreenState extends State<DosenHistoryScreen>
         child: StreamBuilder<List<LogbookValidationItem>>(
           stream: _validationService.getValidationItems(user.uid, isMentor),
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
+            // Show content immediately without loading spinner
 
             if (snapshot.hasError) {
               return Center(
@@ -112,7 +110,7 @@ class _DosenHistoryScreenState extends State<DosenHistoryScreen>
                   Text(
                     isMentor
                         ? 'Daftar logbook mahasiswa bimbinganmu'
-                        : 'Daftar logbook yang sudah kamu validasi',
+                        : 'Daftar Logbook yang Perlu Kamu Validasi',
                     style: textTheme.bodyMedium?.copyWith(
                       color: AppColors.blueGrey,
                     ),
@@ -147,51 +145,58 @@ class _DosenHistoryScreenState extends State<DosenHistoryScreen>
 
                   const SizedBox(height: 16),
 
-                  // List
+                  // List with animated filter transitions
                   Expanded(
-                    child: items.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.inbox_rounded,
-                                  size: 64,
-                                  color: Colors.white.withOpacity(0.3),
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'Tidak ada logbook',
-                                  style: textTheme.bodyLarge?.copyWith(
-                                    color: Colors.white.withOpacity(0.5),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      child: items.isEmpty
+                          ? Center(
+                              key: const ValueKey('empty'),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.inbox_rounded,
+                                    size: 64,
+                                    color: Colors.white.withOpacity(0.3),
                                   ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : ListView.separated(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            padding: const EdgeInsets.only(bottom: 100),
-                            itemCount: items.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(height: 12),
-                            itemBuilder: (context, index) {
-                              final item = items[index];
-                              return _HistoryCard(
-                                item: item,
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          LogbookValidationDetailScreen(
-                                            item: item,
-                                          ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Tidak ada logbook',
+                                    style: textTheme.bodyLarge?.copyWith(
+                                      color: Colors.white.withOpacity(0.5),
                                     ),
-                                  );
-                                },
-                              );
-                            },
-                          ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.separated(
+                              key: ValueKey('list_$_selectedFilter'),
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              padding: const EdgeInsets.only(bottom: 140),
+                              itemCount: items.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 12),
+                              itemBuilder: (context, index) {
+                                final item = items[index];
+                                return _HistoryCard(
+                                  item: item,
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            LogbookValidationDetailScreen(
+                                              item: item,
+                                            ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                    ),
                   ),
                 ],
               ),
@@ -213,17 +218,24 @@ class _DosenHistoryScreenState extends State<DosenHistoryScreen>
     int waitingCount = items.where((e) => e.isWaiting).length;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.navy.withOpacity(0.8),
-            AppColors.blueBook.withOpacity(0.6),
+            AppColors.navy.withOpacity(0.85),
+            AppColors.blueBook.withOpacity(0.7),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.navy.withOpacity(0.3),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -231,21 +243,41 @@ class _DosenHistoryScreenState extends State<DosenHistoryScreen>
             approvedCount.toString(),
             'Disetujui',
             AppColors.greenArrow,
+            Icons.check_circle_rounded,
           ),
-          _buildDivider(),
-          _buildStatItem(revisionCount.toString(), 'Revisi', Colors.orange),
-          _buildDivider(),
+          _buildStatDivider(),
+          _buildStatItem(
+            revisionCount.toString(),
+            'Revisi',
+            Colors.orange,
+            Icons.edit_note_rounded,
+          ),
+          _buildStatDivider(),
           _buildStatItem(
             waitingCount.toString(),
             'Menunggu',
             AppColors.blueBook,
+            Icons.hourglass_top_rounded,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildStatItem(String value, String label, Color color) {
+  Widget _buildStatDivider() {
+    return Container(
+      width: 1,
+      height: 40,
+      color: Colors.white.withOpacity(0.2),
+    );
+  }
+
+  Widget _buildStatItem(
+    String value,
+    String label,
+    Color color,
+    IconData icon,
+  ) {
     return Expanded(
       child: Column(
         children: [
@@ -253,28 +285,21 @@ class _DosenHistoryScreenState extends State<DosenHistoryScreen>
             value,
             style: TextStyle(
               color: color,
-              fontSize: 24,
+              fontSize: 22,
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.7),
+            style: const TextStyle(
+              color: Color(0xFFFDFEFD),
               fontSize: 12,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildDivider() {
-    return Container(
-      width: 1,
-      height: 40,
-      color: Colors.white.withOpacity(0.2),
     );
   }
 }
@@ -352,31 +377,31 @@ class _HistoryCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
             offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
-                    color: _statusColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    color: _statusColor.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                   child: Icon(_statusIcon, color: _statusColor, size: 24),
                 ),
@@ -418,7 +443,7 @@ class _HistoryCard extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: _statusColor.withOpacity(0.1),
+                    color: _statusColor.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(

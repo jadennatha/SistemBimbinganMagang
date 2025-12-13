@@ -22,12 +22,6 @@ class _LogbookValidationDetailScreenState
       LogbookValidationService();
   bool _isLoading = false;
 
-  Color get _statusColor {
-    if (widget.item.isApproved) return AppColors.greenArrow;
-    if (widget.item.isRevision) return Colors.orange;
-    return AppColors.blueBook;
-  }
-
   String get _statusLabel => widget.item.statusLabel;
 
   Future<void> _handleApprove() async {
@@ -109,160 +103,181 @@ class _LogbookValidationDetailScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // header sederhana
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 20, 8),
+            // header dengan judul di tengah
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
               child: Row(
                 children: [
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    icon: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      size: 20,
-                      color: Colors.white,
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 18,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Detail logbook',
-                    style: t.titleLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
+                  Expanded(
+                    child: Text(
+                      'Detail Logbook',
+                      textAlign: TextAlign.center,
+                      style: t.titleLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
+                  // Spacer for balance
+                  const SizedBox(width: 40),
                 ],
               ),
             ),
 
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // kartu info mahasiswa
+                    // Kartu info mahasiswa dengan gradient header
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceLight,
-                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.15),
-                            blurRadius: 18,
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
                         ],
                       ),
-                      child: Row(
+                      child: Column(
                         children: [
+                          // Gradient header
                           Container(
-                            width: 42,
-                            height: 42,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.blueBook.withOpacity(0.12),
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(20),
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [Color(0xFF3B82F6), Color(0xFF1E40AF)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(24),
+                                topRight: Radius.circular(24),
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.person_rounded,
-                              color: AppColors.blueBook,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            child: Row(
                               children: [
-                                Text(
-                                  widget.item.studentName,
-                                  style: t.titleSmall?.copyWith(
-                                    color: AppColors.navyDark,
-                                    fontWeight: FontWeight.w700,
+                                Container(
+                                  width: 56,
+                                  height: 56,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white.withOpacity(0.2),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.3),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      widget.item.studentName.isNotEmpty
+                                          ? widget.item.studentName[0]
+                                                .toUpperCase()
+                                          : 'M',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 22,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                const SizedBox(height: 6),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.calendar_today_rounded,
-                                      size: 14,
-                                      color: AppColors.blueGrey.withOpacity(
-                                        0.9,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      widget.item.dateLabel,
-                                      style: t.bodySmall?.copyWith(
-                                        color: AppColors.blueGrey.withOpacity(
-                                          0.9,
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        widget.item.studentName,
+                                        style: t.titleMedium?.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w700,
                                         ),
                                       ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        widget.item.dateLabel,
+                                        style: t.bodySmall?.copyWith(
+                                          color: Colors.white.withOpacity(0.9),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    _statusLabel,
+                                    style: t.labelSmall?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
                                     ),
-                                  ],
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _statusColor.withOpacity(0.14),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              _statusLabel,
-                              style: t.labelSmall?.copyWith(
-                                color: _statusColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // judul + isi aktivitas
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceLight,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.10),
-                            blurRadius: 12,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.item.title,
-                            style: t.titleMedium?.copyWith(
-                              color: AppColors.navyDark,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            widget.item.description,
-                            textAlign: TextAlign.justify,
-                            style: t.bodyMedium?.copyWith(
-                              color: AppColors.navy.withOpacity(0.8),
-                              height: 1.5,
+                          // Content section
+                          Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.item.title,
+                                  style: t.titleMedium?.copyWith(
+                                    color: AppColors.navyDark,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceLight,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Text(
+                                    widget.item.description,
+                                    textAlign: TextAlign.justify,
+                                    style: t.bodyMedium?.copyWith(
+                                      color: AppColors.navy.withOpacity(0.8),
+                                      height: 1.6,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -321,7 +336,7 @@ class _LogbookValidationDetailScreenState
                                                       >(Colors.white),
                                                 ),
                                               )
-                                            : const Text('Minta revisi'),
+                                            : const Text('Minta Revisi'),
                                       ),
                                     ),
                                   ),
@@ -413,7 +428,7 @@ class _LogbookValidationDetailScreenState
                     ),
                   ),
                   Text(
-                    'Catatan revisi',
+                    'Alasan',
                     style: t.titleMedium?.copyWith(
                       color: AppColors.navyDark,
                       fontWeight: FontWeight.w700,
@@ -421,7 +436,7 @@ class _LogbookValidationDetailScreenState
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Tulis catatan yang ingin Kamu sampaikan ke mahasiswa.',
+                    'Tulis Alasan yang ingin kamu sampaikan ke Mahasiswa..',
                     style: t.bodySmall?.copyWith(
                       color: AppColors.navy.withOpacity(0.75),
                     ),
@@ -474,7 +489,7 @@ class _LogbookValidationDetailScreenState
                       Expanded(
                         child: TextButton(
                           onPressed: () {
-                            Navigator.of(sheetContext).pop(false);
+                            Navigator.of(sheetContext).pop(null);
                           },
                           child: const Text('Batal'),
                         ),
@@ -486,7 +501,7 @@ class _LogbookValidationDetailScreenState
                             final note = controller.text.trim();
                             if (note.isEmpty) {
                               setStateSheet(() {
-                                errorText = 'Catatan revisi tidak boleh kosong';
+                                errorText = 'Alasan tidak boleh kosong';
                               });
                               return;
                             }
@@ -499,7 +514,7 @@ class _LogbookValidationDetailScreenState
                               borderRadius: BorderRadius.circular(14),
                             ),
                           ),
-                          child: const Text('Kirim revisi'),
+                          child: const Text('Kirim Revisi'),
                         ),
                       ),
                     ],
@@ -518,8 +533,8 @@ class _LogbookValidationDetailScreenState
         if (mounted) {
           await _showStatusDialog(
             context,
-            title: 'Revisi dikirim',
-            message: 'Catatan revisi sudah terkirim ke mahasiswa.',
+            title: 'Revisi Dikirim',
+            message: 'Alasan Revisi sudah terkirim ke Mahasiswa.',
             color: Colors.orange.shade600,
           );
           if (mounted) {
@@ -542,55 +557,100 @@ class _LogbookValidationDetailScreenState
       context: context,
       barrierDismissible: true,
       builder: (dialogContext) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
-          actionsPadding: const EdgeInsets.only(bottom: 8),
-          actionsAlignment: MainAxisAlignment.center,
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.12),
-                  shape: BoxShape.circle,
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 30,
+                  offset: const Offset(0, 15),
                 ),
-                child: Icon(Icons.check_circle_rounded, color: color, size: 26),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: t.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.navy,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: t.bodyMedium?.copyWith(
-                  color: AppColors.navy.withOpacity(0.85),
-                  height: 1.4,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              style: TextButton.styleFrom(
-                foregroundColor: color,
-                textStyle: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              child: const Text('OK'),
+              ],
             ),
-          ],
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon Container with gradient background
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: color == AppColors.greenArrow
+                          ? [Colors.green.shade400, Colors.teal.shade400]
+                          : [
+                              Colors.orange.shade400,
+                              Colors.deepOrange.shade400,
+                            ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withOpacity(0.3),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.check_rounded,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Title
+                Text(
+                  title,
+                  style: t.titleLarge?.copyWith(
+                    color: AppColors.navyDark,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Message
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: t.bodyMedium?.copyWith(
+                    color: AppColors.navy.withOpacity(0.8),
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.blueBook,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: const Text(
+                      'OK',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
