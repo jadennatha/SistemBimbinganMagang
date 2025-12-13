@@ -131,16 +131,16 @@ class _SplashScreenState extends State<SplashScreen>
                 child: ScaleTransition(
                   scale: _logoScale,
                   child: Container(
-                    width: 120,
-                    height: 120,
+                    width: 140, // Diperbesar dari 120
+                    height: 140,
                     decoration: const BoxDecoration(
                       color: AppColors.navy,
                       shape: BoxShape.circle,
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(18),
+                      padding: const EdgeInsets.all(22), // Padding disesuaikan
                       child: Image.asset(
-                        'assets/images/logo.png', // sesuaikan path logo
+                        'assets/images/logo.png',
                         fit: BoxFit.contain,
                       ),
                     ),
@@ -149,19 +149,20 @@ class _SplashScreenState extends State<SplashScreen>
               ),
               const SizedBox(height: 24),
               Text(
-                'E Bimbingan',
+                'E - Magang', // Update teks
                 style: textTheme.headlineSmall?.copyWith(
                   color: AppColors.white,
                   fontWeight: FontWeight.w600,
                 ),
+                textAlign: TextAlign.center, // Ratakan tengah
               ),
               const SizedBox(height: 8),
               Text(
-                'Monitoring bimbingan magang',
+                'Monitoring Bimbingan Magang', // Update teks
                 style: textTheme.bodyMedium?.copyWith(
                   color: AppColors.blueGrey,
                 ),
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.center, // Ratakan tengah
               ),
               const SizedBox(height: 32),
               SizedBox(
@@ -173,20 +174,19 @@ class _SplashScreenState extends State<SplashScreen>
                     return ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: LinearProgressIndicator(
-                        value: _progress.value, // 0 sampai 1
-                        color: AppColors.white, // bar putih
-                        backgroundColor: AppColors.navy.withOpacity(
-                          0.4,
-                        ), // track tipis
+                        value: _progress.value,
+                        color: AppColors.white,
+                        backgroundColor: AppColors.navy.withOpacity(0.4),
                       ),
                     );
                   },
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 24), // Jarak diperbesar dari 12
               Text(
-                'Menyiapkan Sistem..',
+                'Menyiapkan Sistem...', // Update teks
                 style: textTheme.bodySmall?.copyWith(color: AppColors.blueGrey),
+                textAlign: TextAlign.center, // Ratakan tengah
               ),
             ],
           ),

@@ -21,18 +21,18 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   static const List<_OnboardData> _pages = [
     _OnboardData(
-      title: 'Pantau bimbingan',
-      subtitle: 'Lihat progres dan riwayat bimbingan magang kamu.',
+      title: 'Pantau Bimbingan',
+      subtitle: 'Lihat Progres dan Riwayat Bimbingan Magang Kamu',
       icon: Icons.assignment_turned_in_outlined,
     ),
     _OnboardData(
-      title: 'Terhubung mudah',
-      subtitle: 'Komunikasi rapi dengan dosen dan pembimbing.',
+      title: 'Terhubung Mudah',
+      subtitle: 'Komunikasi Rapi dengan Dosen dan Pembimbing',
       icon: Icons.forum_outlined,
     ),
     _OnboardData(
-      title: 'Logbook tersimpan',
-      subtitle: 'Catat aktivitas dan simpan berkas magang.',
+      title: 'Logbook Tersimpan',
+      subtitle: 'Catat Aktivitas dan Simpan Berkas Magang',
       icon: Icons.auto_stories_outlined,
     ),
   ];

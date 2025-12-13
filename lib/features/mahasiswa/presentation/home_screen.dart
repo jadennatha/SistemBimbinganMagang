@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/app_colors.dart';
 import '../../../core/services/local_notification_service.dart';
-import '../../notification/presentation/notification_screen.dart';
+
 import 'dashboard_content.dart';
 import 'logbook_content.dart';
 import 'profile_content.dart';
@@ -34,12 +34,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildTabContent() {
     switch (_currentIndex) {
       case 0:
-        return const DashboardContent();
+        return DashboardContent(onProfileTap: () => _onTabChanged(2));
       case 1:
         return const LogbookContent();
       case 2:
-        return const NotificationScreen();
-      case 3:
       default:
         return const ProfileContent();
     }
@@ -49,7 +47,39 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: _buildTabContent(),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 350),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        child: KeyedSubtree(
+          key: ValueKey<int>(_currentIndex),
+          child: _buildTabContent(),
+        ),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          // Combined fade + scale + subtle slide animation
+          return FadeTransition(
+            opacity: animation,
+            child: ScaleTransition(
+              scale: Tween<double>(begin: 0.95, end: 1.0).animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+              ),
+              child: SlideTransition(
+                position:
+                    Tween<Offset>(
+                      begin: const Offset(0.0, 0.02),
+                      end: Offset.zero,
+                    ).animate(
+                      CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeOutCubic,
+                      ),
+                    ),
+                child: child,
+              ),
+            ),
+          );
+        },
+      ),
       bottomNavigationBar: SafeArea(
         top: false,
         child: Padding(

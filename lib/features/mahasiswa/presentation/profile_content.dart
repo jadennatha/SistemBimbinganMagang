@@ -120,23 +120,6 @@ class ProfileContent extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.greenArrow.withOpacity(0.14),
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                              child: Text(
-                                'Akun aktif',
-                                style: textTheme.labelSmall?.copyWith(
-                                  color: AppColors.greenArrow,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                       ),

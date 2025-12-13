@@ -5,9 +5,14 @@ import '../../../app/app_colors.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../logbook/data/logbook_model.dart';
 import '../../logbook/data/logbook_service.dart';
+import 'logbook_detail_screen.dart';
+import '../../notification/presentation/notification_screen.dart';
+import '../../../core/services/notification_service.dart';
 
 class DashboardContent extends StatefulWidget {
-  const DashboardContent({super.key});
+  final VoidCallback? onProfileTap;
+
+  const DashboardContent({super.key, this.onProfileTap});
 
   @override
   State<DashboardContent> createState() => _DashboardContentState();
@@ -59,9 +64,9 @@ class _DashboardContentState extends State<DashboardContent> {
   }
 
   void _showLogbookDetail(LogbookModel logbook) {
-    showDialog(
-      context: context,
-      builder: (context) => _LogbookDetailDialog(logbook: logbook),
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => LogbookDetailScreen(logbook: logbook)),
     );
   }
 
@@ -79,53 +84,143 @@ class _DashboardContentState extends State<DashboardContent> {
       top: true,
       bottom: false,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 32, 20, 32), // konten agak turun
+        padding: const EdgeInsets.fromLTRB(20, 32, 20, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header sapaan
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center, // Align Center
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _sapaan(),
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: AppColors.blueGrey,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      namaLengkap,
-                      style: textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.circle,
-                          size: 8,
-                          color: AppColors.greenArrow,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _sapaan(),
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: AppColors.blueGrey,
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Magang aktif',
-                          style: textTheme.labelSmall?.copyWith(
-                            color: AppColors.greenArrow,
-                            fontWeight: FontWeight.w600,
+                      ),
+                      const SizedBox(height: 4),
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            namaLengkap,
+                            style: textTheme.headlineSmall?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          const SizedBox(width: 8),
+                          // "Magang aktif" moved here
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.greenArrow.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.circle,
+                                  size: 6,
+                                  color: AppColors.greenArrow,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Magang aktif',
+                                  style: textTheme.labelSmall?.copyWith(
+                                    color: AppColors.greenArrow,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                _UserBubble(name: namaLengkap),
+                const SizedBox(width: 12),
+                // Notification Bell
+                StreamBuilder<int>(
+                  stream: NotificationService().getUnreadCountStream(
+                    _studentId,
+                  ),
+                  builder: (context, snapshot) {
+                    final unreadCount = snapshot.data ?? 0;
+                    return GestureDetector(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => Dialog(
+                            backgroundColor: Colors.transparent,
+                            insetPadding: const EdgeInsets.all(20),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: const SizedBox(
+                                height: 500,
+                                child: NotificationScreen(),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withOpacity(0.1),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.2),
+                                width: 1,
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.notifications_outlined,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                          ),
+                          if (unreadCount > 0)
+                            Positioned(
+                              top: -2,
+                              right: -2,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                                constraints: const BoxConstraints(
+                                  minWidth: 10,
+                                  minHeight: 10,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: 12),
+                GestureDetector(
+                  onTap: widget.onProfileTap, // Use callback
+                  child: _UserBubble(name: namaLengkap),
+                ),
               ],
             ),
 
@@ -203,17 +298,13 @@ class _SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final weekStart = today.subtract(Duration(days: today.weekday - 1));
-    final weekEnd = weekStart.add(const Duration(days: 6));
-    final _firestoreService = FirestoreService();
+    final logbookService = LogbookService();
+    final firestoreService = FirestoreService();
 
     return StreamBuilder<List<LogbookModel>>(
       stream: logbookService.getStudentLogbooksVerified(studentId),
       builder: (context, snapshot) {
         final allLogbooks = snapshot.data ?? [];
-
         final logbookCount = allLogbooks.length;
 
         return Container(
@@ -244,23 +335,23 @@ class _SummaryCard extends StatelessWidget {
               _SummaryRow(
                 icon: Icons.edit_note,
                 title: 'Logbook Terverifikasi',
-                value: '$logbookCount entri',
+                value: '$logbookCount Entri',
               ),
               const SizedBox(height: 10),
               StreamBuilder<String>(
-                stream: _firestoreService.getUserTotalInternday(studentId),
+                stream: firestoreService.getUserTotalInternday(studentId),
                 builder: (context, snapshot) {
-                  final totalHari = snapshot.data;
+                  final totalHari = snapshot.data ?? '0';
                   return _SummaryRow(
                     icon: Icons.assignment_add,
                     title: 'Logbook Yang Harus Dibuat',
-                    value: totalHari.toString(),
+                    value: '$totalHari Logbook',
                   );
                 },
               ),
               const SizedBox(height: 10),
               StreamBuilder<double>(
-                stream: _firestoreService.getInternshipProgressStream(
+                stream: firestoreService.getInternshipProgressStream(
                   studentId,
                   'logbooks',
                 ),
@@ -296,30 +387,41 @@ class _ActivityCard extends StatelessWidget {
     required this.onLogbookTap,
   });
 
+  String _capitalizeWords(String input) {
+    if (input.isEmpty) return input;
+    return input
+        .split(' ')
+        .map((str) {
+          if (str.isEmpty) return str;
+          return str[0].toUpperCase() + str.substring(1);
+        })
+        .join(' ');
+  }
+
   String _getTimeLabel(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
-
-    // Normalize logDate to date-only (remove time component)
     final logDate = DateTime(date.year, date.month, date.day);
 
+    String label;
     if (logDate.isAtSameMomentAs(today)) {
-      return 'Hari ini';
+      label = 'hari ini';
     } else if (logDate.isAtSameMomentAs(yesterday)) {
-      return 'Kemarin';
+      label = 'kemarin';
     } else {
       final diff = today.difference(logDate).inDays;
       if (diff < 7) {
-        return '$diff hari lalu';
+        label = '$diff hari lalu';
       } else if (diff < 30) {
         final weeks = diff ~/ 7;
-        return '$weeks minggu lalu';
+        label = '$weeks minggu lalu';
       } else {
         final months = diff ~/ 30;
-        return '$months bulan lalu';
+        label = '$months bulan lalu';
       }
     }
+    return _capitalizeWords(label);
   }
 
   @override
@@ -333,16 +435,11 @@ class _ActivityCard extends StatelessWidget {
           return Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
             child: Text('Error: ${snapshot.error}'),
           );
         }
 
         final allLogbooks = snapshot.data ?? [];
-        // Urutkan berdasarkan tanggal dibuat (terbaru dulu)
         final sortedLogbooks = allLogbooks.toList()
           ..sort((a, b) => b.date.compareTo(a.date));
         final recentLogbooks = sortedLogbooks.take(5).toList();
@@ -365,7 +462,7 @@ class _ActivityCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Aktivitas terbaru',
+                'Aktivitas Terbaru', // Capitalized
                 style: textTheme.titleMedium?.copyWith(
                   color: AppColors.navyDark,
                   fontWeight: FontWeight.w600,
@@ -433,7 +530,7 @@ class _ActivityItemFromLogbook extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center, // Center Vertically
       children: [
         Container(
           width: 34,
@@ -489,13 +586,11 @@ class _ActivityItemFromLogbook extends StatelessWidget {
 
 class _UserBubble extends StatelessWidget {
   const _UserBubble({required this.name});
-
   final String name;
 
   @override
   Widget build(BuildContext context) {
     final String initial = name.isNotEmpty ? name[0].toUpperCase() : 'M';
-
     return Container(
       padding: const EdgeInsets.all(2),
       decoration: const BoxDecoration(
@@ -523,7 +618,6 @@ class _UserBubble extends StatelessWidget {
 
 class _ProgressCard extends StatefulWidget {
   final String studentId;
-
   const _ProgressCard({required this.studentId});
 
   @override
@@ -593,12 +687,12 @@ class _ProgressCardState extends State<_ProgressCard>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Progres magang',
+                      'Progres Magang', // Capitalized
                       style: textTheme.labelLarge?.copyWith(
                         color: AppColors.blueGrey,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 12),
                     Text(
                       '${(progressValue * 100).toStringAsFixed(1)}%',
                       style: textTheme.headlineSmall?.copyWith(
@@ -606,7 +700,7 @@ class _ProgressCardState extends State<_ProgressCard>
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(999),
                       child: TweenAnimationBuilder<double>(
@@ -623,9 +717,9 @@ class _ProgressCardState extends State<_ProgressCard>
                         },
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 12),
                     Text(
-                      'Lengkapi logbook dan laporan kamu secara bertahap.',
+                      'Lengkapi Logbook dan Laporan kamu secara bertahap.', // Capitalized
                       style: textTheme.bodySmall?.copyWith(
                         color: Colors.white.withOpacity(0.9),
                       ),
@@ -700,216 +794,6 @@ class _SummaryRow extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-// ============ LOGBOOK DETAIL DIALOG ============
-class _LogbookDetailDialog extends StatelessWidget {
-  final LogbookModel logbook;
-
-  const _LogbookDetailDialog({required this.logbook});
-
-  Color _getStatusColor(String status) {
-    if (status == 'approved') return AppColors.greenArrow;
-    if (status == 'rejected') return Colors.red;
-    return AppColors.blueGrey;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Theme.of(context).textTheme;
-
-    return Dialog(
-      backgroundColor: AppColors.surfaceLight,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-            child: Text(
-              'Detail Logbook',
-              style: t.titleLarge?.copyWith(
-                color: AppColors.navyDark,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          Flexible(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _DetailItem(
-                    label: 'Judul Kegiatan',
-                    value: logbook.judulKegiatan,
-                  ),
-                  const SizedBox(height: 16),
-                  _DetailItem(
-                    label: 'Tanggal',
-                    value:
-                        '${logbook.date.day}/${logbook.date.month}/${logbook.date.year}',
-                  ),
-                  const SizedBox(height: 16),
-                  _DetailItem(
-                    label: 'Aktivitas',
-                    value: logbook.activity,
-                    isMultiline: true,
-                  ),
-                  if (logbook.komentar.isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    _DetailItem(
-                      label: 'Komentar',
-                      value: logbook.komentar,
-                      isMultiline: true,
-                    ),
-                  ],
-                  const SizedBox(height: 20),
-                  Text(
-                    'Status Persetujuan',
-                    style: t.bodySmall?.copyWith(
-                      color: AppColors.navy.withOpacity(0.7),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _StatusBadge(
-                          label: 'Dosen',
-                          status: logbook.statusDosen,
-                          color: _getStatusColor(logbook.statusDosen),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
-            child: SizedBox(
-              width: double.infinity,
-              child: TextButton(
-                onPressed: () => Navigator.pop(context),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  backgroundColor: AppColors.blueBook,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                ),
-                child: Text(
-                  'Tutup',
-                  style: t.bodyLarge?.copyWith(
-                    color: AppColors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ============ DETAIL ITEM ============
-class _DetailItem extends StatelessWidget {
-  final String label;
-  final String value;
-  final bool isMultiline;
-
-  const _DetailItem({
-    required this.label,
-    required this.value,
-    this.isMultiline = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Theme.of(context).textTheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: t.bodySmall?.copyWith(
-            color: AppColors.navy.withOpacity(0.7),
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.navy.withOpacity(0.1)),
-          ),
-          child: Text(
-            value,
-            style: t.bodyMedium?.copyWith(color: AppColors.navyDark),
-            maxLines: isMultiline ? null : 1,
-            overflow: isMultiline ? null : TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ============ STATUS BADGE ============
-class _StatusBadge extends StatelessWidget {
-  final String label;
-  final String status;
-  final Color color;
-
-  const _StatusBadge({
-    required this.label,
-    required this.status,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Theme.of(context).textTheme;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Column(
-        children: [
-          Text(
-            label,
-            style: t.bodySmall?.copyWith(
-              color: AppColors.navy.withOpacity(0.7),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            status.toUpperCase(),
-            style: t.bodySmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

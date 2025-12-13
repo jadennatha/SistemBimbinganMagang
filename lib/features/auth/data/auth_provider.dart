@@ -99,12 +99,12 @@ class AuthProvider extends ChangeNotifier {
   }
 
   String _friendlyError(String m) {
-    if (m.contains('invalid-email')) return 'Email tidak valid.';
-    if (m.contains('user-not-found')) return 'Akun tidak ditemukan.';
-    if (m.contains('wrong-password')) return 'Password salah.';
-    if (m.contains('invalid-credential')) return 'Email atau password salah.';
+    if (m.contains('invalid-email')) return 'Email tidak valid';
+    if (m.contains('user-not-found')) return 'Akun tidak ditemukan';
+    if (m.contains('wrong-password')) return 'Password salah';
+    if (m.contains('invalid-credential')) return 'Email atau Password salah';
     if (m.contains('too-many-requests')) {
-      return 'Terlalu banyak percobaan. Coba lagi nanti.';
+      return 'Terlalu banyak percobaan. Coba lagi nanti';
     }
     return 'Periksa data kamu lagi ya..';
   }

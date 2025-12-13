@@ -28,6 +28,8 @@ class _LoginScreenState extends State<LoginScreen>
   late final Animation<double> _fade;
   late final Animation<Offset> _slide;
 
+  AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
+
   @override
   void initState() {
     super.initState();
@@ -59,78 +61,124 @@ class _LoginScreenState extends State<LoginScreen>
     required bool success,
     required String message,
   }) async {
-    final title = success ? 'Berhasil masuk' : 'Gagal masuk';
-    final iconData = success ? Icons.check_circle : Icons.error;
-    final Color accentColor = success
-        ? AppColors.greenArrow
-        : Colors.red.shade500;
+    final title = success ? 'Berhasil Masuk' : 'Gagal Masuk';
+
+    // Gradient colors based on success/failure
+    final List<Color> gradientColors = success
+        ? [Colors.green.shade400, Colors.teal.shade400]
+        : [Colors.orange.shade400, Colors.deepOrange.shade400];
+    final Color shadowColor = success
+        ? Colors.green.withOpacity(0.3)
+        : Colors.orange.withOpacity(0.3);
+    final IconData iconData = success
+        ? Icons.check_rounded
+        : Icons.warning_amber_rounded;
 
     return showDialog<void>(
       context: context,
+      barrierColor: Colors.black54,
       barrierDismissible: true,
-      builder: (context) {
+      builder: (ctx) {
         final textTheme = Theme.of(context).textTheme;
 
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
-          actionsPadding: const EdgeInsets.only(bottom: 8),
-          actionsAlignment: MainAxisAlignment.center,
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: accentColor.withOpacity(0.12),
-                  shape: BoxShape.circle,
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 30,
+                  offset: const Offset(0, 15),
                 ),
-                child: Icon(iconData, color: accentColor, size: 26),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: textTheme.titleMedium?.copyWith(
-                  fontFamily: 'StackSansHeadline',
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.navy,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: AppColors.navy.withOpacity(0.85),
-                  height: 1.4,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: TextButton.styleFrom(
-                foregroundColor: accentColor,
-                textStyle: const TextStyle(
-                  fontFamily: 'StackSansText',
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              child: const Text('OK'),
+              ],
             ),
-          ],
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon Container with gradient background
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: gradientColors,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: shadowColor,
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Icon(iconData, color: Colors.white, size: 32),
+                ),
+                const SizedBox(height: 20),
+                // Title
+                Text(
+                  title,
+                  style: textTheme.titleLarge?.copyWith(
+                    color: AppColors.navyDark,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Message
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: AppColors.navy.withOpacity(0.8),
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.blueBook,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: const Text(
+                      'Mengerti',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
   }
 
   Future<void> _submit() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      // Aktifkan validasi otomatis agar pesan error hilang saat user mengetik
+      setState(() {
+        _autovalidateMode = AutovalidateMode.onUserInteraction;
+      });
+      return;
+    }
 
     final authProvider = context.read<AuthProvider>();
     final success = await authProvider.signIn(
@@ -192,6 +240,7 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                           child: Form(
                             key: _formKey,
+                            autovalidateMode: _autovalidateMode,
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -222,7 +271,7 @@ class _LoginScreenState extends State<LoginScreen>
                                     ),
                                     const SizedBox(height: 8),
                                     Text(
-                                      'Masuk ke akun Kamu',
+                                      'Silahkan Login ke Akun Anda',
                                       textAlign: TextAlign.center,
                                       style: t.bodyMedium?.copyWith(
                                         color: AppColors.navy.withOpacity(0.75),
