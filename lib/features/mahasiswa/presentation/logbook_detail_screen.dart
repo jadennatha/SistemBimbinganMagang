@@ -16,7 +16,7 @@ class LogbookDetailScreen extends StatelessWidget {
   String _getStatusText(String status) {
     if (status == 'approved') return 'Disetujui';
     if (status == 'rejected') return 'Ditolak';
-    return 'Pending';
+    return 'Diproses';
   }
 
   String _formatDate(DateTime date) {
@@ -77,7 +77,7 @@ class LogbookDetailScreen extends StatelessWidget {
             if (logbook.komentar.isNotEmpty) ...[
               const SizedBox(height: 24),
               _DetailItem(
-                label: 'Komentar',
+                label: 'Alasan',
                 value: logbook.komentar,
                 isMultiline: true,
               ),

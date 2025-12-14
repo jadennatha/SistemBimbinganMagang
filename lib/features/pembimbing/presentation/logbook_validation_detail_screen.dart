@@ -315,8 +315,7 @@ class _LogbookValidationDetailScreenState
                                             ? null
                                             : () => _showRevisionSheet(context),
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor:
-                                              Colors.orange.shade600,
+                                          backgroundColor: Colors.red,
                                           foregroundColor: Colors.white,
                                           shape: RoundedRectangleBorder(
                                             borderRadius: BorderRadius.circular(
@@ -336,7 +335,7 @@ class _LogbookValidationDetailScreenState
                                                       >(Colors.white),
                                                 ),
                                               )
-                                            : const Text('Minta Revisi'),
+                                            : const Text('Tolak'),
                                       ),
                                     ),
                                   ),
@@ -508,13 +507,13 @@ class _LogbookValidationDetailScreenState
                             Navigator.of(sheetContext).pop(note);
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange.shade600,
+                            backgroundColor: Colors.red,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
                             ),
                           ),
-                          child: const Text('Kirim Revisi'),
+                          child: const Text('Kirim'),
                         ),
                       ),
                     ],
@@ -533,9 +532,9 @@ class _LogbookValidationDetailScreenState
         if (mounted) {
           await _showStatusDialog(
             context,
-            title: 'Revisi Dikirim',
-            message: 'Alasan Revisi sudah terkirim ke Mahasiswa.',
-            color: Colors.orange.shade600,
+            title: 'Ditolak',
+            message: 'Alasan Penolakan sudah terkirim ke Mahasiswa.',
+            color: Colors.red,
           );
           if (mounted) {
             Navigator.of(context).pop(); // Return to history screen
@@ -583,10 +582,7 @@ class _LogbookValidationDetailScreenState
                     gradient: LinearGradient(
                       colors: color == AppColors.greenArrow
                           ? [Colors.green.shade400, Colors.teal.shade400]
-                          : [
-                              Colors.orange.shade400,
-                              Colors.deepOrange.shade400,
-                            ],
+                          : [Colors.red.shade300, Colors.deepOrange.shade400],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),

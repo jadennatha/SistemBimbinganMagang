@@ -22,7 +22,7 @@ class DosenFloatingNavbar extends StatelessWidget {
     ),
     _NavItemData(
       icon: Icons.menu_book_rounded,
-      label: isMentor ? 'Validasi' : 'Riwayat',
+      label: 'Validasi',
       accent1: AppColors.navy,
       accent2: AppColors.blueBook,
     ),

@@ -587,7 +587,7 @@ class _StatusFilterChipsRow extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           _FilterChip(
-            label: 'Menunggu',
+            label: 'Diproses',
             selected: selectedFilter == 'pending',
             onTap: () => onFilterChanged('pending'),
           ),

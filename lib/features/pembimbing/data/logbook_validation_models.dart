@@ -31,9 +31,9 @@ class LogbookValidationItem {
   String get statusLabel {
     switch (status) {
       case LogbookStatus.waiting:
-        return 'Menunggu cek';
+        return 'Diproses';
       case LogbookStatus.revision:
-        return 'Perlu revisi';
+        return 'Ditolak';
       case LogbookStatus.approved:
         return 'Disetujui';
     }

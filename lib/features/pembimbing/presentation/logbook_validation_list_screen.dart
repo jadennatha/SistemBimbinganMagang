@@ -141,7 +141,7 @@ class _SummaryCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Logbook menunggu cek',
+                      'Logbook diproses',
                       style: textTheme.bodyMedium?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
@@ -149,7 +149,7 @@ class _SummaryCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Tinjau entri dan beri status Disetujui atau Revisi.',
+                      'Tinjau entri dan beri status Disetujui atau Ditolak.',
                       style: textTheme.bodySmall?.copyWith(
                         color: Colors.white.withOpacity(0.9),
                       ),
@@ -161,12 +161,12 @@ class _SummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _SummaryLine(
-            label: 'Menunggu cek',
+            label: 'Diproses',
             count: summary.waitingCount,
             dotColor: const Color(0xFFB4E5FF),
           ),
           _SummaryLine(
-            label: 'Perlu revisi',
+            label: 'Ditolak',
             count: summary.revisionCount,
             dotColor: const Color(0xFFFFD18A),
           ),
@@ -241,14 +241,14 @@ class _StatusFilterRow extends StatelessWidget {
     return Row(
       children: [
         _FilterChip(
-          label: 'Menunggu',
+          label: 'Diproses',
           selected: current == LogbookStatus.waiting,
           onTap: () => onChanged(LogbookStatus.waiting),
           textTheme: textTheme,
         ),
         const SizedBox(width: 8),
         _FilterChip(
-          label: 'Revisi',
+          label: 'Ditolak',
           selected: current == LogbookStatus.revision,
           onTap: () => onChanged(LogbookStatus.revision),
           textTheme: textTheme,
@@ -326,7 +326,7 @@ class _LogbookTile extends StatelessWidget {
         statusColor = AppColors.greenArrow;
         break;
       case LogbookStatus.revision:
-        statusColor = Colors.orange;
+        statusColor = Colors.red;
         break;
       case LogbookStatus.waiting:
       default:

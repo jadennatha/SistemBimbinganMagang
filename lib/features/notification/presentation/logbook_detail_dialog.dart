@@ -230,7 +230,7 @@ class LogbookDetailDialog extends StatelessWidget {
     } else if (status == 'rejected') {
       return 'REJECTED';
     }
-    return 'PENDING';
+    return 'Diproses';
   }
 
   String _formatDate(DateTime date) {

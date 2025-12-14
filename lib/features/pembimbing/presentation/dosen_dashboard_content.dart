@@ -358,10 +358,10 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
                   ),
                   const SizedBox(width: 10),
                   _buildAnimatedMiniStat(
-                    'Revisi',
+                    'Ditolak',
                     stats.revisionCount,
-                    Icons.refresh_rounded,
-                    const Color(0xFFF59E0B),
+                    Icons.cancel_rounded,
+                    Colors.red,
                     1,
                   ),
                   const SizedBox(width: 10),
@@ -557,7 +557,7 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
                       if (!isLast) const SizedBox(height: 10),
                     ],
                   );
-                }).toList(),
+                }),
             ],
           ),
         );
@@ -575,9 +575,9 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
       title = 'Logbook Disetujui';
       color = AppColors.greenArrow;
     } else if (item.isRevision) {
-      icon = Icons.replay_rounded;
-      title = 'Revisi Diminta';
-      color = Colors.orange;
+      icon = Icons.cancel_rounded;
+      title = 'Ditolak';
+      color = Colors.red;
     } else {
       icon = Icons.edit_note_rounded;
       title = 'Logbook baru';

@@ -23,7 +23,7 @@ class _DosenHistoryScreenState extends State<DosenHistoryScreen>
   final LogbookValidationService _validationService =
       LogbookValidationService();
 
-  final List<String> _filters = ['Semua', 'Disetujui', 'Revisi', 'Menunggu'];
+  final List<String> _filters = ['Semua', 'Disetujui', 'Ditolak', 'Diproses'];
 
   @override
   void initState() {
@@ -52,10 +52,10 @@ class _DosenHistoryScreenState extends State<DosenHistoryScreen>
     if (_selectedFilter == 'Disetujui') {
       return allItems.where((e) => e.status == LogbookStatus.approved).toList();
     }
-    if (_selectedFilter == 'Revisi') {
+    if (_selectedFilter == 'Ditolak') {
       return allItems.where((e) => e.status == LogbookStatus.revision).toList();
     }
-    if (_selectedFilter == 'Menunggu') {
+    if (_selectedFilter == 'Diproses') {
       return allItems.where((e) => e.status == LogbookStatus.waiting).toList();
     }
     return allItems;
@@ -100,7 +100,7 @@ class _DosenHistoryScreenState extends State<DosenHistoryScreen>
                 children: [
                   // Header
                   Text(
-                    'Riwayat Validasi',
+                    'Validasi',
                     style: textTheme.headlineSmall?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
@@ -248,14 +248,14 @@ class _DosenHistoryScreenState extends State<DosenHistoryScreen>
           _buildStatDivider(),
           _buildStatItem(
             revisionCount.toString(),
-            'Revisi',
-            Colors.orange,
+            'Ditolak',
+            Colors.red,
             Icons.edit_note_rounded,
           ),
           _buildStatDivider(),
           _buildStatItem(
             waitingCount.toString(),
-            'Menunggu',
+            'Diproses',
             AppColors.blueBook,
             Icons.hourglass_top_rounded,
           ),
@@ -353,7 +353,7 @@ class _HistoryCard extends StatelessWidget {
       case LogbookStatus.approved:
         return AppColors.greenArrow;
       case LogbookStatus.revision:
-        return Colors.orange;
+        return Colors.red;
       case LogbookStatus.waiting:
         return AppColors.blueBook;
     }
@@ -364,7 +364,7 @@ class _HistoryCard extends StatelessWidget {
       case LogbookStatus.approved:
         return Icons.check_circle_rounded;
       case LogbookStatus.revision:
-        return Icons.replay_rounded;
+        return Icons.cancel_rounded;
       case LogbookStatus.waiting:
         return Icons.schedule_rounded;
     }
