@@ -149,7 +149,7 @@ class _SplashScreenState extends State<SplashScreen>
               ),
               const SizedBox(height: 24),
               Text(
-                'E - Magang', // Update teks
+                'E - BIMA', // Update teks
                 style: textTheme.headlineSmall?.copyWith(
                   color: AppColors.white,
                   fontWeight: FontWeight.w600,
