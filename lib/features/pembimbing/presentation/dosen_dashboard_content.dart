@@ -20,11 +20,9 @@ class DosenDashboardContent extends StatefulWidget {
 }
 
 class _DosenDashboardContentState extends State<DosenDashboardContent>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
-  late final AnimationController _pulseController;
-  late final Animation<double> _pulseAnimation;
 
   String _nama = 'User';
   final LogbookValidationService _validationService =
@@ -40,14 +38,6 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
     _fadeAnimation = CurvedAnimation(
       parent: _fadeController,
       curve: Curves.easeOutCubic,
-    );
-
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.92, end: 1.08).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
     _loadUserData();
@@ -81,7 +71,6 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
   @override
   void dispose() {
     _fadeController.dispose();
-    _pulseController.dispose();
     super.dispose();
   }
 
@@ -264,35 +253,32 @@ class _DosenDashboardContentState extends State<DosenDashboardContent>
               // Top row with animated icon and title
               Row(
                 children: [
-                  // Animated floating icon with glow
-                  ScaleTransition(
-                    scale: _pulseAnimation,
-                    child: Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.white.withOpacity(0.3),
-                            Colors.white.withOpacity(0.1),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.white.withOpacity(0.2),
-                            blurRadius: 12,
-                            spreadRadius: 2,
-                          ),
+                  // Static icon (removed animation for performance)
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withOpacity(0.3),
+                          Colors.white.withOpacity(0.1),
                         ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      child: const Icon(
-                        Icons.auto_stories_rounded,
-                        color: Colors.white,
-                        size: 28,
-                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.white.withOpacity(0.2),
+                          blurRadius: 12,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.auto_stories_rounded,
+                      color: Colors.white,
+                      size: 28,
                     ),
                   ),
                   const SizedBox(width: 16),

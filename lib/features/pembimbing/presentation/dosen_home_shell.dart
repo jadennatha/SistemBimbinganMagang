@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../../../app/app_colors.dart';
-import '../../auth/data/auth_provider.dart';
-import 'dosen_floating_navbar.dart';
+import '../../../core/widgets/shared_floating_navbar.dart';
+
 import 'dosen_main_screen.dart';
 import 'dosen_history_screen.dart';
 import 'dosen_profile_screen.dart';
@@ -17,10 +16,33 @@ class DosenHomeShell extends StatefulWidget {
 
 class _DosenHomeShellState extends State<DosenHomeShell> {
   int _currentIndex = 0;
+  int _previousIndex = 0;
+
+  static const List<NavItemData> _navItems = [
+    NavItemData(
+      icon: Icons.grid_view_rounded,
+      label: 'Beranda',
+      accent1: AppColors.blueBook,
+      accent2: AppColors.greenArrow,
+    ),
+    NavItemData(
+      icon: Icons.menu_book_rounded,
+      label: 'Validasi',
+      accent1: AppColors.navy,
+      accent2: AppColors.blueBook,
+    ),
+    NavItemData(
+      icon: Icons.person_rounded,
+      label: 'Profil',
+      accent1: AppColors.blueGrey,
+      accent2: AppColors.blueBook,
+    ),
+  ];
 
   void _onNavChanged(int index) {
     if (index == _currentIndex) return;
     setState(() {
+      _previousIndex = _currentIndex;
       _currentIndex = index;
     });
   }
@@ -39,39 +61,50 @@ class _DosenHomeShellState extends State<DosenHomeShell> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
-    final isMentor = authProvider.isMentor;
+    final bool slideFromRight = _currentIndex > _previousIndex;
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      // AnimatedSwitcher for smooth tab transitions
       body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 250),
-        switchInCurve: Curves.easeOut,
-        switchOutCurve: Curves.easeIn,
+        duration: const Duration(milliseconds: 300),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
         child: KeyedSubtree(
           key: ValueKey<int>(_currentIndex),
           child: _buildCurrentPage(),
         ),
         transitionBuilder: (Widget child, Animation<double> animation) {
+          final isEntering = child.key == ValueKey<int>(_currentIndex);
+          final slideOffset = isEntering
+              ? (slideFromRight ? 0.05 : -0.05)
+              : (slideFromRight ? -0.05 : 0.05);
+
           return FadeTransition(
-            opacity: CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeInOut,
+            opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+            child: SlideTransition(
+              position:
+                  Tween<Offset>(
+                    begin: Offset(slideOffset, 0),
+                    end: Offset.zero,
+                  ).animate(
+                    CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.easeOutCubic,
+                    ),
+                  ),
+              child: child,
             ),
-            child: child,
           );
         },
       ),
-      // navbar melayang di bawah
       bottomNavigationBar: SafeArea(
         top: false,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-          child: DosenFloatingNavbar(
+          child: SharedFloatingNavbar(
+            items: _navItems,
             currentIndex: _currentIndex,
             onChanged: _onNavChanged,
-            isMentor: isMentor,
           ),
         ),
       ),

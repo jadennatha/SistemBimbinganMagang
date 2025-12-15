@@ -616,47 +616,18 @@ class _UserBubble extends StatelessWidget {
   }
 }
 
-class _ProgressCard extends StatefulWidget {
+class _ProgressCard extends StatelessWidget {
   final String studentId;
   const _ProgressCard({required this.studentId});
 
   @override
-  State<_ProgressCard> createState() => _ProgressCardState();
-}
-
-class _ProgressCardState extends State<_ProgressCard>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _pulse;
-  final _firestoreService = FirestoreService();
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    )..repeat(reverse: true);
-
-    _pulse = Tween<double>(
-      begin: 0.92,
-      end: 1.08,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final firestoreService = FirestoreService();
 
     return StreamBuilder<double>(
-      stream: _firestoreService.getInternshipProgressStream(
-        widget.studentId,
+      stream: firestoreService.getInternshipProgressStream(
+        studentId,
         'logbooks',
       ),
       builder: (context, snapshot) {
@@ -687,7 +658,7 @@ class _ProgressCardState extends State<_ProgressCard>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Progres Magang', // Capitalized
+                      'Progres Magang',
                       style: textTheme.labelLarge?.copyWith(
                         color: AppColors.blueGrey,
                       ),
@@ -719,7 +690,7 @@ class _ProgressCardState extends State<_ProgressCard>
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Lengkapi Logbook dan Laporan kamu secara bertahap.', // Capitalized
+                      'Lengkapi Logbook dan Laporan kamu secara bertahap.',
                       style: textTheme.bodySmall?.copyWith(
                         color: Colors.white.withOpacity(0.9),
                       ),
@@ -728,20 +699,17 @@ class _ProgressCardState extends State<_ProgressCard>
                 ),
               ),
               const SizedBox(width: 16),
-              ScaleTransition(
-                scale: _pulse,
-                child: Container(
-                  width: 54,
-                  height: 54,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.16),
-                  ),
-                  child: const Icon(
-                    Icons.school_rounded,
-                    color: Colors.white,
-                    size: 30,
-                  ),
+              Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.16),
+                ),
+                child: const Icon(
+                  Icons.school_rounded,
+                  color: Colors.white,
+                  size: 30,
                 ),
               ),
             ],

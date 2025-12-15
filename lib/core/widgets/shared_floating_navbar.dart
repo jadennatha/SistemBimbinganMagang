@@ -1,38 +1,33 @@
 import 'package:flutter/material.dart';
-import '../../../app/app_colors.dart';
+import '../../app/app_colors.dart';
 
-class DosenFloatingNavbar extends StatelessWidget {
-  const DosenFloatingNavbar({
-    super.key,
-    required this.currentIndex,
-    required this.onChanged,
-    this.isMentor = false,
+/// Data model untuk item navigasi
+class NavItemData {
+  const NavItemData({
+    required this.icon,
+    required this.label,
+    required this.accent1,
+    required this.accent2,
   });
 
+  final IconData icon;
+  final String label;
+  final Color accent1;
+  final Color accent2;
+}
+
+/// Shared floating navbar yang dapat digunakan oleh mahasiswa dan dosen
+class SharedFloatingNavbar extends StatelessWidget {
+  const SharedFloatingNavbar({
+    super.key,
+    required this.items,
+    required this.currentIndex,
+    required this.onChanged,
+  });
+
+  final List<NavItemData> items;
   final int currentIndex;
   final ValueChanged<int> onChanged;
-  final bool isMentor;
-
-  List<_NavItemData> get items => [
-    const _NavItemData(
-      icon: Icons.grid_view_rounded,
-      label: 'Beranda',
-      accent1: AppColors.blueBook,
-      accent2: AppColors.greenArrow,
-    ),
-    _NavItemData(
-      icon: Icons.menu_book_rounded,
-      label: 'Validasi',
-      accent1: AppColors.navy,
-      accent2: AppColors.blueBook,
-    ),
-    const _NavItemData(
-      icon: Icons.person_rounded,
-      label: 'Profil',
-      accent1: AppColors.blueGrey,
-      accent2: AppColors.blueBook,
-    ),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -42,8 +37,6 @@ class DosenFloatingNavbar extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(0),
-          topRight: Radius.circular(0),
           bottomLeft: Radius.circular(24),
           bottomRight: Radius.circular(24),
         ),
@@ -73,20 +66,6 @@ class DosenFloatingNavbar extends StatelessWidget {
   }
 }
 
-class _NavItemData {
-  const _NavItemData({
-    required this.icon,
-    required this.label,
-    required this.accent1,
-    required this.accent2,
-  });
-
-  final IconData icon;
-  final String label;
-  final Color accent1;
-  final Color accent2;
-}
-
 class _NavItem extends StatefulWidget {
   const _NavItem({
     required this.data,
@@ -94,7 +73,7 @@ class _NavItem extends StatefulWidget {
     required this.onTap,
   });
 
-  final _NavItemData data;
+  final NavItemData data;
   final bool selected;
   final VoidCallback onTap;
 
@@ -112,13 +91,13 @@ class _NavItemState extends State<_NavItem>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 180),
+      duration: const Duration(milliseconds: 200),
       value: widget.selected ? 1.0 : 0.0,
     );
     _scale = Tween<double>(
       begin: 1.0,
       end: 1.08,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutExpo));
   }
 
   @override
@@ -145,6 +124,7 @@ class _NavItemState extends State<_NavItem>
 
     return GestureDetector(
       onTap: widget.onTap,
+      behavior: HitTestBehavior.opaque,
       child: ScaleTransition(
         scale: _scale,
         child: Column(
@@ -172,7 +152,7 @@ class _NavItemState extends State<_NavItem>
 class _ColoredIcon extends StatelessWidget {
   const _ColoredIcon({required this.data, required this.selected});
 
-  final _NavItemData data;
+  final NavItemData data;
   final bool selected;
 
   @override

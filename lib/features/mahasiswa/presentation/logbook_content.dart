@@ -14,11 +14,7 @@ class LogbookContent extends StatefulWidget {
   State<LogbookContent> createState() => _LogbookContentState();
 }
 
-class _LogbookContentState extends State<LogbookContent>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _btnController;
-  late final Animation<double> _scaleAnim;
-  late final Animation<double> _glowAnim;
+class _LogbookContentState extends State<LogbookContent> {
   final LogbookService _logbookService = LogbookService();
   late String _studentId;
   late String _dosenId;
@@ -31,20 +27,6 @@ class _LogbookContentState extends State<LogbookContent>
   void initState() {
     super.initState();
     _initializeUserData();
-    _btnController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1300),
-    )..repeat(reverse: true);
-
-    _scaleAnim = Tween<double>(
-      begin: 1.0,
-      end: 1.06,
-    ).animate(CurvedAnimation(parent: _btnController, curve: Curves.easeInOut));
-
-    _glowAnim = Tween<double>(
-      begin: 0.16,
-      end: 0.35,
-    ).animate(CurvedAnimation(parent: _btnController, curve: Curves.easeInOut));
   }
 
   Future<void> _initializeUserData() async {
@@ -81,12 +63,6 @@ class _LogbookContentState extends State<LogbookContent>
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
-  }
-
-  @override
-  void dispose() {
-    _btnController.dispose();
-    super.dispose();
   }
 
   Future<void> _showSuccessDialog() async {
@@ -291,29 +267,17 @@ class _LogbookContentState extends State<LogbookContent>
           children: [
             const _TodayStatusCard(),
             const SizedBox(height: 15),
-            AnimatedBuilder(
-              animation: _btnController,
-              builder: (context, child) {
-                final double scale = _scaleAnim.value;
-                final double glowOpacity = _glowAnim.value;
-
-                return Transform.scale(
-                  scale: scale,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.blueBook.withOpacity(glowOpacity),
-                          blurRadius: 22,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: child,
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.blueBook.withOpacity(0.25),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
                   ),
-                );
-              },
+                ],
+              ),
               child: SizedBox(
                 width: double.infinity,
                 height: 48,
