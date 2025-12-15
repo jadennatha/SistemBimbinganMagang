@@ -15,9 +15,14 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
-  int _previousIndex = 0;
+  late AnimationController _animController;
+  late Animation<double> _fadeAnimation;
+
+  // Cache pages to avoid rebuilds
+  late final List<Widget> _pages;
 
   static const List<NavItemData> _navItems = [
     NavItemData(
@@ -44,65 +49,51 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     LocalNotificationService().startListening();
+
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 150),
+    );
+
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
+
+    _animController.value = 1.0; // Start fully visible
+
+    _pages = [
+      DashboardContent(onProfileTap: () => _onTabChanged(2)),
+      const LogbookContent(),
+      const ProfileContent(),
+    ];
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
   }
 
   void _onTabChanged(int index) {
     if (index == _currentIndex) return;
-    setState(() {
-      _previousIndex = _currentIndex;
-      _currentIndex = index;
-    });
-  }
 
-  Widget _buildTabContent() {
-    switch (_currentIndex) {
-      case 0:
-        return DashboardContent(onProfileTap: () => _onTabChanged(2));
-      case 1:
-        return const LogbookContent();
-      case 2:
-      default:
-        return const ProfileContent();
-    }
+    // Quick fade out then switch
+    _animController.reverse().then((_) {
+      setState(() {
+        _currentIndex = index;
+      });
+      _animController.forward();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool slideFromRight = _currentIndex > _previousIndex;
-
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeInCubic,
-        child: KeyedSubtree(
-          key: ValueKey<int>(_currentIndex),
-          child: _buildTabContent(),
-        ),
-        transitionBuilder: (Widget child, Animation<double> animation) {
-          final isEntering = child.key == ValueKey<int>(_currentIndex);
-          final slideOffset = isEntering
-              ? (slideFromRight ? 0.05 : -0.05)
-              : (slideFromRight ? -0.05 : 0.05);
-
-          return FadeTransition(
-            opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
-            child: SlideTransition(
-              position:
-                  Tween<Offset>(
-                    begin: Offset(slideOffset, 0),
-                    end: Offset.zero,
-                  ).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeOutCubic,
-                    ),
-                  ),
-              child: child,
-            ),
-          );
-        },
+      body: FadeTransition(
+        opacity: _fadeAnimation,
+        child: IndexedStack(index: _currentIndex, children: _pages),
       ),
       bottomNavigationBar: SafeArea(
         top: false,
