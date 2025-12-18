@@ -43,19 +43,19 @@
 
 ```
 lib/
-├── 📱 app/                    # Konfigurasi aplikasi utama
-├── 🔧 core/                   # Layanan inti & utilities
-│   └── services/              # Notification service, dll
-├── 🎨 features/               # Fitur-fitur aplikasi
-│   ├── auth/                  # 🔐 Autentikasi pengguna
-│   ├── logbook/               # 📝 Manajemen logbook
-│   ├── mahasiswa/             # 👨‍🎓 Dashboard mahasiswa
-│   ├── notification/          # 🔔 Notifikasi
-│   ├── onboarding/            # 🚀 Onboarding screen
-│   ├── pembimbing/            # 👨‍🏫 Dashboard pembimbing
-│   └── splash/                # ⚡ Splash screen
-├── firebase_options.dart      # Konfigurasi Firebase
-└── main.dart                  # Entry point aplikasi
+├── 📱 app/                    
+├── 🔧 core/                   
+│   └── services/              
+├── 🎨 features/               
+│   ├── auth/                  
+│   ├── logbook/               
+│   ├── mahasiswa/             
+│   ├── notification/          
+│   ├── onboarding/            
+│   ├── pembimbing/           
+│   └── splash/                
+├── firebase_options.dart      
+└── main.dart                  
 ```
 
 ---
